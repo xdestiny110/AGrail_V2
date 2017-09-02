@@ -1,0 +1,27 @@
+﻿function awake()
+    local xxx = require("luapbintf")
+end
+
+function destroy()
+    
+end
+
+function onShow()
+    
+end
+
+function onHide()
+    
+end
+
+function onPause()
+    
+end
+
+function onResume()
+    
+end
+
+function onEventTriiger()
+    
+end
