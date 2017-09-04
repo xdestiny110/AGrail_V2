@@ -1,5 +1,4 @@
-﻿using ProtoBuf;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Framework.Network
 {
@@ -11,9 +10,7 @@ namespace Framework.Network
 
     public class Protobuf
     {
-        public IExtensible Proto;
+        public object Proto;
         public int ProtoID;
     }
 }
-
-
