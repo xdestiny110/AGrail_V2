@@ -146,15 +146,30 @@ namespace Framework.AssetBundle
             //读取远端与本地check file
             List<CheckFile> localCheckFile = new List<CheckFile>();
             List<CheckFile> remoteCheckFile = new List<CheckFile>();
-            if (File.Exists(Path.Combine(Application.persistentDataPath, "CheckFile")))
-                yield return StartCoroutine(readCheckFile(Path.Combine(PersistentDataPath, "CheckFile"), localCheckFile));
+            if (File.Exists(PlatformPath.PersistFileSysPath("CheckFile")))
+                yield return StartCoroutine(readCheckFile(PlatformPath.PersistPath2URL("CheckFile"), localCheckFile));
             else
-                yield return StartCoroutine(readCheckFile(Path.Combine(StreamingAssetsPath, "CheckFile"), localCheckFile));
+                yield return StartCoroutine(readCheckFile(PlatformPath.StreamPath2URL("CheckFile"), localCheckFile));
             if (!IgnoreBundleServer)
                 yield return StartCoroutine(readCheckFile(remoteSrv + activePlatform + "/CheckFile", remoteCheckFile));
 
             if (IsError)
                 yield break;
+
+            //移动pb文件至Persistent path
+            foreach(var v in localCheckFile)
+            {
+                if(v.name.EndsWith(".pb") && v.location == CheckFile.Location.Local)
+                {
+                    var www = new WWW(PlatformPath.StreamPath2URL(v.name));
+                    yield return www;
+                    v.location = CheckFile.Location.Persistent;
+                    using(var fs = new FileStream(PlatformPath.PersistFileSysPath(v.name), FileMode.Create, FileAccess.Write))
+                    {
+                        fs.Write(www.bytes, 0, www.bytes.Length);
+                    }
+                }
+            }
 
             //比较check file
             List<CheckFile> finalCheckFile = new List<CheckFile>();
@@ -174,7 +189,7 @@ namespace Framework.AssetBundle
                 foreach(var v in localCheckFile)
                 {
                     if (!finalCheckFile.Contains(v) && v.location == CheckFile.Location.Persistent)
-                        File.Delete(Path.Combine(Application.persistentDataPath, v.name));
+                        File.Delete(PlatformPath.PersistFileSysPath(v.name));
                 }
             }
             else
@@ -196,7 +211,7 @@ namespace Framework.AssetBundle
 
             //更新本地checkfile
             finalCheckFile.ForEach(cf => { cf.location = (cf.location == CheckFile.Location.Remote) ? CheckFile.Location.Persistent : cf.location; });
-            using (FileStream fs = new FileStream(Path.Combine(Application.persistentDataPath, "CheckFile"), FileMode.Create, FileAccess.Write))
+            using (FileStream fs = new FileStream(PlatformPath.PersistFileSysPath("CheckFile"), FileMode.Create, FileAccess.Write))
             {
                 var json = JsonConvert.SerializeObject(finalCheckFile, Formatting.Indented);
                 var bytes = System.Text.Encoding.UTF8.GetBytes(json);
@@ -209,10 +224,10 @@ namespace Framework.AssetBundle
                 switch (v.location)
                 {
                     case CheckFile.Location.Local:
-                        yield return StartCoroutine(downloadAssetBundle(Path.Combine(StreamingAssetsPath, v.name), v.name));
+                        yield return StartCoroutine(downloadAssetBundle(PlatformPath.StreamPath2URL(v.name), v.name));
                         break;
                     case CheckFile.Location.Persistent:
-                        yield return StartCoroutine(downloadAssetBundle(Path.Combine(PersistentDataPath, v.name), v.name));
+                        yield return StartCoroutine(downloadAssetBundle(PlatformPath.PersistPath2URL(v.name), v.name));
                         break;
                 }
             }
@@ -330,35 +345,9 @@ namespace Framework.AssetBundle
                 Debug.LogErrorFormat("WWW error occur. Error = {0}", www.error);
                 yield break;
             }
-            using (FileStream fs = new FileStream(Path.Combine(Application.persistentDataPath, bundleName), FileMode.Create, FileAccess.Write))
+            using (FileStream fs = new FileStream(PlatformPath.PersistFileSysPath(bundleName), FileMode.Create, FileAccess.Write))
             {
                 fs.Write(www.bytes, 0, www.bytes.Length);
-            }
-        }
-
-        private string StreamingAssetsPath
-        {
-            get
-            {
-                return
-#if UNITY_EDITOR || UNITY_STANDALONE
-                 "file://" + Application.streamingAssetsPath + "/";
-#elif UNITY_ANDROID
-                "jar:file://" + Application.dataPath + "!/assets/";
-#endif
-            }
-        }
-
-        private string PersistentDataPath
-        {
-            get
-            {
-                return
-#if UNITY_EDITOR || UNITY_STANDALONE
-                    "file:///" + Application.persistentDataPath + "/";
-#elif UNITY_ANDROID
-                    "file://" + Application.persistentDataPath + "/";
-#endif
             }
         }
     }

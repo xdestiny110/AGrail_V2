@@ -1,8 +1,8 @@
 ﻿function awake()
     local pb = require("luapb")
     print("load lua-protobuf")
-    assert(pb.loadfile(CS.Framework.PlatformPath.StreamFileSysPath("addressbook.pb")))
-    print(string.format("load pb from %s", CS.Framework.PlatformPath.StreamFileSysPath("addressbook.pb")))
+    assert(pb.loadfile(CS.Framework.PlatformPath.PersistFileSysPath("addressbook.pb")))
+    print(string.format("load pb from %s", CS.Framework.PlatformPath.PersistFileSysPath("addressbook.pb")))
 
     local person = {
         name = "Alice",

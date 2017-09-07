@@ -83,8 +83,11 @@ namespace Framework
             foreach (FileSystemInfo i in fileinfo)
             {
                 if (i is DirectoryInfo)
+                {
                     DeleteDirContent(i.FullName);
-                if(regex == null ||
+                    Directory.Delete(i.FullName);
+                }                    
+                else if(regex == null ||
                     (!isExcept && regex.IsMatch(i.FullName)) ||
                     (isExcept && !regex.IsMatch(i.FullName)))
                     File.Delete(i.FullName);
