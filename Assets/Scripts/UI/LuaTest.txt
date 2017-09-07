@@ -1,5 +1,20 @@
 ﻿function awake()
-    local xxx = require("luapbintf")
+    local pb = require("luapb")
+    print("load lua-protobuf")
+    assert(pb.loadfile(CS.Framework.PlatformPath.StreamFileSysPath("addressbook.pb")))
+    print(string.format("load pb from %s", CS.Framework.PlatformPath.StreamFileSysPath("addressbook.pb")))
+
+    local person = {
+        name = "Alice",
+        id = 12345,
+        phone = {
+            { number = "1301234567" },
+            { number = "87654321", type = "WORK" },
+        }
+    }
+    local en = assert(pb.encode("tutorial.Person", person))
+    local de = assert(pb.decode("tutorial.Person", en))
+    print(de.name)
 end
 
 function destroy()

@@ -25,7 +25,7 @@ namespace Framework.UI
                         instance = AssetDatabase.LoadAssetAtPath<UIGenerator>(AssetDatabase.GUIDToAssetPath(guids[0]));
                     if(instance == null)
                     {
-                        var filePath = EditorTool.SystemPathToUnityPath(
+                        var filePath = Tool.SystemPathToUnityPath(
                             new System.Diagnostics.StackTrace(1, true).GetFrame(0).GetFileName());
                         filePath = filePath.Substring(0, filePath.LastIndexOf("/"));
                         instance = CreateInstance<UIGenerator>();

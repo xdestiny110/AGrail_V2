@@ -5,6 +5,7 @@ using System.IO;
 using UnityEngine.AssetBundles.AssetBundleDataSource;
 using System.Text;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace UnityEngine.AssetBundles
 {
@@ -17,6 +18,8 @@ namespace UnityEngine.AssetBundles
         private ValidBuildTarget m_BuildTarget = ValidBuildTarget.StandaloneWindows;
         [SerializeField]
         private CompressOptions m_Compression = CompressOptions.StandardCompression;
+        [SerializeField]
+        private string m_protoBinPath = "Assets/ProtoFile";
 
         private string m_OutputPath = string.Empty;
         [SerializeField]
@@ -168,6 +171,14 @@ namespace UnityEngine.AssetBundles
                 }
             }
 
+            // proto bin path
+            using (new EditorGUI.DisabledScope(false))
+            {
+                EditorGUILayout.Space();
+                GUILayout.BeginHorizontal();
+                var newPath = EditorGUILayout.TextField("Proto bin Path", m_protoBinPath);
+                GUILayout.EndHorizontal();
+            }
 
             ////output path
             using (new EditorGUI.DisabledScope (!AssetBundleModel.Model.DataSource.CanSpecifyBuildOutputDirectory)) {
@@ -288,11 +299,10 @@ namespace UnityEngine.AssetBundles
                         try
                         {
                             if (Directory.Exists(m_OutputPath))
-                                Directory.Delete(m_OutputPath, true);
+                                Framework.Tool.DeleteDirContent(m_OutputPath);
 
-                            if (m_CopyToStreaming.state)
-                            if (Directory.Exists(m_streamingPath))
-                                Directory.Delete(m_streamingPath, true);
+                            if (m_CopyToStreaming.state && Directory.Exists(m_streamingPath))
+                                Framework.Tool.DeleteDirContent(m_streamingPath);
                         }
                         catch (System.Exception e)
                         {
@@ -327,41 +337,17 @@ namespace UnityEngine.AssetBundles
             AssetBundleModel.Model.DataSource.BuildAssetBundles (buildInfo);
 
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+            //¸´ÖÆpbÎÄ¼þ
+            if (Directory.Exists(m_protoBinPath))
+                Framework.Tool.DirectoryCopy(m_protoBinPath, m_OutputPath, new Regex(@".*\.pb"));
+
             generateCheckFile();
 
             if(m_CopyToStreaming.state)
-                DirectoryCopy(m_OutputPath, m_streamingPath);
+                Framework.Tool.DirectoryCopy(m_OutputPath, m_streamingPath, new Regex(@".*\.manifest"), true);
 
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
         }
-
-        private static void DirectoryCopy(string sourceDirName, string destDirName)
-        {
-            // Get the subdirectories for the specified directory.
-            DirectoryInfo dir = new DirectoryInfo(sourceDirName);
-
-            // If the destination directory doesn't exist, create it.
-            if (!Directory.Exists(destDirName))
-            {
-                Directory.CreateDirectory(destDirName);
-            }
-
-            // Get the files in the directory and copy them to the new location.
-            FileInfo[] files = dir.GetFiles();
-            foreach (FileInfo file in files)
-            {
-                string temppath = Path.Combine(destDirName, file.Name);
-                file.CopyTo(temppath, false);
-            }
-
-            DirectoryInfo[] dirs = dir.GetDirectories();
-            foreach (DirectoryInfo subdir in dirs)
-            {
-                string temppath = Path.Combine(destDirName, subdir.Name);
-                DirectoryCopy(subdir.FullName, temppath);
-            }
-        }
-
         private void BrowseForFolder()
         {
             m_UseDefaultPath = false;

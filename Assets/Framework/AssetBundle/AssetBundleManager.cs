@@ -18,13 +18,9 @@ namespace Framework.AssetBundle
             {
                 if (instance == null)
                 {
-#if !UNITY_EDITOR
                     var go = new GameObject("AssetBundleMgr");
                     instance = go.AddComponent<AssetBundleManager>();
                     DontDestroyOnLoad(go);
-#else
-                    instance = new AssetBundleManager();
-#endif
                 }
                 return instance;
             }
@@ -60,7 +56,7 @@ namespace Framework.AssetBundle
             get
 #if !UNITY_EDITOR
             {
-                return false;
+                return true;
             }
 #else
             {
@@ -121,6 +117,7 @@ namespace Framework.AssetBundle
         void Awake()
         {
             Debug.LogFormat("SimulationMode = {0}", SimulationMode);
+            StartCoroutine(LoadCheckFileAsync());
         }
 
         public UnityEngine.AssetBundle GetLoadedBundle(string bundleName)

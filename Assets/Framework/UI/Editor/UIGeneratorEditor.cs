@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -25,12 +24,12 @@ namespace Framework.UI
 
         private void generateUI()
         {
-            if (!Directory.Exists(EditorTool.UnityPathToSystemPath(UIGenerator.Instance.UIPrefabPath + UIFactory.UIPrefabPath)))
-                Directory.CreateDirectory(EditorTool.UnityPathToSystemPath(UIGenerator.Instance.UIPrefabPath + UIFactory.UIPrefabPath));
-            if(!Directory.Exists(EditorTool.UnityPathToSystemPath(UIGenerator.Instance.UIScriptPath + UIFactory.UIPrefabPath)))
-                Directory.CreateDirectory(EditorTool.UnityPathToSystemPath(UIGenerator.Instance.UIScriptPath + UIFactory.UIPrefabPath));
+            if (!Directory.Exists(Tool.UnityPathToSystemPath(UIGenerator.Instance.UIPrefabPath + UIFactory.UIPrefabPath)))
+                Directory.CreateDirectory(Tool.UnityPathToSystemPath(UIGenerator.Instance.UIPrefabPath + UIFactory.UIPrefabPath));
+            if(!Directory.Exists(Tool.UnityPathToSystemPath(UIGenerator.Instance.UIScriptPath + UIFactory.UIPrefabPath)))
+                Directory.CreateDirectory(Tool.UnityPathToSystemPath(UIGenerator.Instance.UIScriptPath + UIFactory.UIPrefabPath));
 
-            List<string> uiPrefabs = EditorTool.AssetPathOfUnityFolder(UIGenerator.Instance.UIPrefabPath + UIFactory.UIPrefabPath, false, ".prefab");
+            List<string> uiPrefabs = Tool.AssetPathOfUnityFolder(UIGenerator.Instance.UIPrefabPath + UIFactory.UIPrefabPath, false, ".prefab");
             UIGenerator.Instance.UITypes.Clear();
             foreach (var v in uiPrefabs)
                 addUIBase(v);
@@ -46,7 +45,7 @@ namespace Framework.UI
             var go = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             if (go.GetComponent<UIBase>() == null)
                 go.AddComponent<UIBase>();
-            var systemPath = EditorTool.UnityPathToSystemPath(UIGenerator.Instance.UIScriptPath + UIFactory.UIPrefabPath + "/" + go.name + ".txt");
+            var systemPath = Tool.UnityPathToSystemPath(UIGenerator.Instance.UIScriptPath + UIFactory.UIPrefabPath + "/" + go.name + ".txt");
             if (!File.Exists(systemPath))
             {
                 generateLuaScripts(systemPath);

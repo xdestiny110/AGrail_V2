@@ -62,6 +62,7 @@ namespace Framework.AssetBundle
                 Asset = assetBundleRequest.asset as T;
                 if (Asset == null)
                     Error = string.Format("Can not load asset {0}/{1}", BundleName, AssetName);
+                return false;
             }
             Progress = assetBundleRequest.progress;
             return true;

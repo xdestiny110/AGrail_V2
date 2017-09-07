@@ -51,6 +51,7 @@ public static class ExampleGenConfig
     [CSharpCallLua]
     public static List<Type> CSharpCallLua = new List<Type>() {
                 typeof(Action),
+                typeof(Action<object[]>),
                 typeof(Func<double, double, double>),
                 typeof(Action<string>),
                 typeof(Action<double>),

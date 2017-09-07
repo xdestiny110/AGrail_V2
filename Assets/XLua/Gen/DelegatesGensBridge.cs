@@ -45,7 +45,37 @@ namespace XLua
 #endif
 		}
         
-		public double __Gen_Delegate_Imp1(double p0, double p1)
+		public void __Gen_Delegate_Imp1(object[] p0)
+		{
+#if THREAD_SAFE || HOTFIX_ENABLE
+            lock (luaEnv.luaEnvLock)
+            {
+#endif
+                RealStatePtr L = luaEnv.rawL;
+                int err_func =LuaAPI.load_error_func(L, errorFuncRef);
+                ObjectTranslator translator = luaEnv.translator;
+
+
+                LuaAPI.lua_getref(L, luaReference);
+
+
+                translator.Push(L, p0);
+                
+                int __gen_error = LuaAPI.lua_pcall(L, 1, 0, err_func);
+                if (__gen_error != 0)
+                    luaEnv.ThrowExceptionFromError(err_func - 1);
+
+
+                
+                
+                LuaAPI.lua_settop(L, err_func - 1);
+                
+#if THREAD_SAFE || HOTFIX_ENABLE
+            }
+#endif
+		}
+        
+		public double __Gen_Delegate_Imp2(double p0, double p1)
 		{
 #if THREAD_SAFE || HOTFIX_ENABLE
             lock (luaEnv.luaEnvLock)
@@ -76,7 +106,7 @@ namespace XLua
 #endif
 		}
         
-		public void __Gen_Delegate_Imp2(string p0)
+		public void __Gen_Delegate_Imp3(string p0)
 		{
 #if THREAD_SAFE || HOTFIX_ENABLE
             lock (luaEnv.luaEnvLock)
@@ -106,7 +136,7 @@ namespace XLua
 #endif
 		}
         
-		public void __Gen_Delegate_Imp3(double p0)
+		public void __Gen_Delegate_Imp4(double p0)
 		{
 #if THREAD_SAFE || HOTFIX_ENABLE
             lock (luaEnv.luaEnvLock)
@@ -156,19 +186,24 @@ namespace XLua
 			    return new UnityEngine.Events.UnityAction(__Gen_Delegate_Imp0);
 			}
 		
+		    if (type == typeof(System.Action<object[]>))
+			{
+			    return new System.Action<object[]>(__Gen_Delegate_Imp1);
+			}
+		
 		    if (type == typeof(System.Func<double, double, double>))
 			{
-			    return new System.Func<double, double, double>(__Gen_Delegate_Imp1);
+			    return new System.Func<double, double, double>(__Gen_Delegate_Imp2);
 			}
 		
 		    if (type == typeof(System.Action<string>))
 			{
-			    return new System.Action<string>(__Gen_Delegate_Imp2);
+			    return new System.Action<string>(__Gen_Delegate_Imp3);
 			}
 		
 		    if (type == typeof(System.Action<double>))
 			{
-			    return new System.Action<double>(__Gen_Delegate_Imp3);
+			    return new System.Action<double>(__Gen_Delegate_Imp4);
 			}
 		
 		    throw new InvalidCastException("This type must add to CSharpCallLua: " + type);

@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 using UnityEngine.AssetBundles;
 
@@ -44,8 +41,7 @@ namespace Framework.AssetBundle
         [MenuItem("Framework/AssetBundle/Clean Persistent Path")]
         static void buildTexturePrefab()
         {
-
-            EditorTool.DeleteDirContent(Application.persistentDataPath);
+            Tool.DeleteDirContent(Application.persistentDataPath);
         }
     }
 }
