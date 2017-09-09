@@ -18,9 +18,15 @@ namespace Framework.AssetBundle
             {
                 if (instance == null)
                 {
-                    var go = new GameObject("AssetBundleMgr");
-                    instance = go.AddComponent<AssetBundleManager>();
-                    DontDestroyOnLoad(go);
+                    if (Application.isPlaying)
+                    {
+                        var go = new GameObject("AssetBundleMgr");
+                        instance = go.AddComponent<AssetBundleManager>();
+                        DontDestroyOnLoad(go);
+                    }
+                    else
+                        instance = new AssetBundleManager();
+                    
                 }
                 return instance;
             }

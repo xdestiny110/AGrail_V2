@@ -985,7 +985,7 @@ namespace XLua.CSObjectWrap
                 {
                     string name = LuaAPI.lua_tostring(L, 2);
                     
-                        UnityEngine.Transform __cl_gen_ret = __cl_gen_to_be_invoked.FindChild( name );
+                        UnityEngine.Transform __cl_gen_ret = __cl_gen_to_be_invoked.Find( name );
                         translator.Push(L, __cl_gen_ret);
                     
                     

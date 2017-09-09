@@ -85,18 +85,12 @@ namespace Framework
 
             for(int i = 0; i < timers.Count;)
             {
-                if (timers[i].IsRealTime)
+                var timeNow = timers[i].IsRealTime ? DateTime.Now.GetMiliSecFrom1970() : Time.realtimeSinceStartup * 1000;
+                if(timeNow - timers[i].RegistTime > timers[i].DelayTime)
                 {
-
-                }
-                else
-                {
-                    if(Time.realtimeSinceStartup*1000 - timers[i].RegistTime > timers[i].DelayTime)
-                    {
-                        timers[i].Exec();
-                        timers.RemoveAt(i);
-                        continue;
-                    }
+                    timers[i].Exec();
+                    timers.RemoveAt(i);
+                    continue;
                 }
                 i++;
             }
