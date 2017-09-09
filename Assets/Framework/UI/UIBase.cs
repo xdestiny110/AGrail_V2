@@ -17,7 +17,6 @@ namespace Framework.UI
         [HideInInspector]
         public Canvas Canvas = null;
 
-        internal static LuaEnv luaEnv = new LuaEnv();
         private LuaTable scriptEnv;
         private TextAsset luaScript;
         private Action luaDestroy;
@@ -66,7 +65,6 @@ namespace Framework.UI
 
         public virtual void Awake()
         {
-            luaEnv.AddBuildin("luapb", XLua.LuaDLL.Lua.LoadLuaProtobuf);
             MessageSystem.Notify("OnUICreate", this);
             CanvasGroup = GetComponent<CanvasGroup>();
             Canvas = GetComponent<Canvas>();
@@ -85,13 +83,13 @@ namespace Framework.UI
             if (luaScript != null)
             {
                 Debug.Log("load lua ui script");
-                scriptEnv = luaEnv.NewTable();
-                LuaTable meta = luaEnv.NewTable();
-                meta.Set("__index", luaEnv.Global);
+                scriptEnv = MonoRoot.luaEnv.NewTable();
+                LuaTable meta = MonoRoot.luaEnv.NewTable();
+                meta.Set("__index", MonoRoot.luaEnv.Global);
                 scriptEnv.SetMetaTable(meta);
                 meta.Dispose();
                 scriptEnv.Set("self", this);
-                luaEnv.DoString(luaScript.text, "UIBase", scriptEnv);
+                MonoRoot.luaEnv.DoString(luaScript.text, "UIBase", scriptEnv);
 
                 var luaAwake = scriptEnv.Get<Action>("awake");
                 if (luaAwake != null) luaAwake();

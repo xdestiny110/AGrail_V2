@@ -1,15 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using XLua;
 
 namespace Framework
 {
-    public class AutoFac : MonoBehaviour
+    public class PrefabBase : MonoBehaviour
     {
-        void Awake()
-        {
-
-        }
+        public string Type { get; protected set; }
     }
 }
-

@@ -10,8 +10,6 @@ namespace Framework.UI
         public string UIScriptPath = "Scripts/";
         [ReadOnly]
         public string UIConfigPath;
-        [ReadOnly]
-        public List<string> UITypes = new List<string>();
 
         private static UIGenerator instance;
         public static UIGenerator Instance

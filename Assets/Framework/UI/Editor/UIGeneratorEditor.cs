@@ -30,7 +30,6 @@ namespace Framework.UI
                 Directory.CreateDirectory(Tool.UnityPathToSystemPath(UIGenerator.Instance.UIScriptPath + UIFactory.UIPrefabPath));
 
             List<string> uiPrefabs = Tool.AssetPathOfUnityFolder(UIGenerator.Instance.UIPrefabPath + UIFactory.UIPrefabPath, false, ".prefab");
-            UIGenerator.Instance.UITypes.Clear();
             foreach (var v in uiPrefabs)
                 addUIBase(v);
             AssetDatabase.Refresh();
@@ -38,7 +37,6 @@ namespace Framework.UI
 
         private void addUIBase(string prefabPath)
         {
-            UIGenerator.Instance.UITypes.Add(prefabPath);
             var importer = AssetImporter.GetAtPath(prefabPath);
             if (importer.assetBundleName == null)
                 importer.assetBundleName = UIFactory.UIPrefabPath.ToLower();
