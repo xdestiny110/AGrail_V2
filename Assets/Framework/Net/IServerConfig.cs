@@ -6,5 +6,6 @@
         int Port { get; }
         int SendBufferSize { get; }
         int ReceiveBufferSize { get; }
+        int EngineVer { get; }
     }
 }

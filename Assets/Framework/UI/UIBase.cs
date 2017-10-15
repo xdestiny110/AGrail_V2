@@ -70,6 +70,10 @@ namespace Framework.UI
             Canvas = GetComponent<Canvas>();
             Canvas.renderMode = RenderMode.ScreenSpaceCamera;
             Canvas.worldCamera = Camera.main;
+
+            var idx = gameObject.name.IndexOf(" ");
+            if (idx > 0)
+                gameObject.name = gameObject.name.Substring(0, idx);
         }
 
         public virtual IEnumerator Start()
@@ -82,7 +86,7 @@ namespace Framework.UI
             luaScript = op.Asset;
             if (luaScript != null)
             {
-                Debug.Log("load lua ui script");
+                Debug.LogFormat("load lua ui '{0}' script", gameObject.name);
                 scriptEnv = MonoRoot.luaEnv.NewTable();
                 LuaTable meta = MonoRoot.luaEnv.NewTable();
                 meta.Set("__index", MonoRoot.luaEnv.Global);

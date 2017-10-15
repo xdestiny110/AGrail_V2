@@ -74,6 +74,11 @@ namespace Framework
                 Debug.LogErrorFormat("There is no lua script {0}", filename);
                 return null;
             });
+
+            var luaScript = AssetBundleManager.Instance.LoadAsset<TextAsset>("util", "proto");
+            luaEnv.DoString(luaScript.text);
+            var readPB = luaEnv.Global.Get<Action>("readPB");
+            readPB();
         }
 
         void Update()

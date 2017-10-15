@@ -1,0 +1,38 @@
+function awake()
+    local pb = require("luapb")
+    print("load lua-protobuf")
+    assert(pb.loadfile(CS.Framework.PlatformPath.PersistFileSysPath("addressbook.pb")))
+    print(string.format("load pb from %s", CS.Framework.PlatformPath.PersistFileSysPath("addressbook.pb")))
+
+    local person = {
+        name = "Xdestiny",
+        id = 123456
+    }
+    local en = assert(pb.encode("tutorial.Person", person))
+    local de = assert(pb.decode("tutorial.Person", en))
+    print(de.name)
+end
+
+function destroy()
+    
+end
+
+function onShow()
+    
+end
+
+function onHide()
+    
+end
+
+function onPause()
+    
+end
+
+function onResume()
+    
+end
+
+function onEventTriiger()
+    
+end
