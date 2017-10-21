@@ -1,0 +1,24 @@
+Coder = {
+    switch = {
+        [3] = function(proto)
+            return pb.encode("AGrail.LoginRequest", proto)
+        end,
+        [4] = function(proto)
+            return pb.encode("AGrail.LoginResponse", proto)
+        end
+    }
+}
+
+function Coder:Decode(data)
+    return true, nil
+end
+
+function Coder:Encode(protobuf)
+    f = self.switch[protobuf.ProtoID]
+    if(f) then
+        return f(protobuf.Proto)
+    else
+        print("Unknow proto id " + protobuf.ProtoID)
+    end
+    return nil
+end

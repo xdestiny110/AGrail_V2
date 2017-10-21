@@ -5,10 +5,11 @@ using System.Net.Sockets;
 
 namespace Framework.Network
 {
+    [XLua.LuaCallCSharp]
     public sealed class TCP
     {
         private ICoder coder;
-        private IServerConfig serverConfig;
+        private ServerConfig serverConfig;
         private Socket socket;
         private bool startReconnect;
         private int reconnectDelay;
@@ -42,12 +43,18 @@ namespace Framework.Network
             }
         }
 
-        public TCP(IServerConfig serverConfig, ICoder coder, bool reconnect = true, int maxReconnectTimes = 3)
+        public TCP(ServerConfig serverConfig, ICoder coder, bool reconnect = true, int maxReconnectTimes = 3)
         {
             this.serverConfig = serverConfig;
             this.coder = coder;
             autoReconnect = reconnect;
             this.maxReconnectTimes = maxReconnectTimes;
+
+            MonoRoot.Instance.AddUpdateAction(() =>
+            {
+                while (actions.Count > 0)
+                    actions.Dequeue()();
+            });
         }
 
         public void Connect()
@@ -114,12 +121,6 @@ namespace Framework.Network
             beforeSendProto(protobuf);
             var data = coder.Encode(protobuf);
             socket.BeginSend(data, 0, data.Length, SocketFlags.None, beginSendCallback, socket);
-        }
-
-        public void DoActions()
-        {
-            while (actions.Count > 0)
-                actions.Dequeue()();
         }
 
         private void closeAndReconnect(Socket socket)

@@ -1,0 +1,26 @@
+pb = require("luapb")
+local p =""
+if(CS.Framework.Framework.AssetBundle.AssetBundleManager.SimulationMode)
+then
+    p = CS.Framework.Tool.UnityPathToSystemPath("Assets/ProtoFile/base.pb")
+else
+    p = CS.Framework.PlatformPath.PersistFileSysPath("base.pb")
+end
+assert(pb.loadfile(p))
+
+require("Coder")
+require("ServerConfig")
+GameMgr = {
+    UIInst = CS.Framework.UI.UIManager(),
+    TCPInst = CS.Framework.Network.TCP(SrvConfig, Coder)
+}
+GameMgr.TCPInst:Connect()
+
+local loginReq = {
+    Proto = {asGuest = false, user_id = "Xdestiny", user_password = "123456a"},
+    ProtoID = 3
+}
+while(not GameMgr.TCPInst.Connected) do
+end
+GameMgr.TCPInst:Send()
+

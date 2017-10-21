@@ -250,7 +250,7 @@ namespace Framework.AssetBundle
             if (SimulationMode)
             {
                 var op = new LoadAssetSimulation<T>(assetBundleName, assetName);
-                if (!string.IsNullOrEmpty(op.Error))
+                if (!string.IsNullOrEmpty(op.Error) && !assetBundleName.StartsWith("lua"))
                     Debug.LogError(op.Error);
                 return op.Asset;
             }
@@ -258,7 +258,8 @@ namespace Framework.AssetBundle
                 return bundles[assetBundleName].LoadAsset<T>(assetName);
             else
             {
-                Debug.LogErrorFormat("There is no asset with name {0}/{1}", assetBundleName, assetName);
+                if(!assetBundleName.StartsWith("lua"))
+                    Debug.LogErrorFormat("There is no asset with name {0}/{1}", assetBundleName, assetName);
                 return null;
             }
 #else
@@ -266,7 +267,8 @@ namespace Framework.AssetBundle
                 return bundles[assetBundleName].LoadAsset<T>(assetName);
             else
             {
-                Debug.LogErrorFormat("There is no asset with name {0}/{1}", assetBundleName, assetName);
+                if(!assetBundleName.StartsWith("lua"))
+                    Debug.LogErrorFormat("There is no asset with name {0}/{1}", assetBundleName, assetName);
                 return null;
             }
 #endif

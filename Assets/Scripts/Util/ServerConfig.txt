@@ -1,0 +1,8 @@
+SrvConfig = {
+    ServerIP = "115.28.77.222",
+    Port = 11116,
+    SendBufferSize = 8192,
+    ReceiveBufferSize = 8192,
+    EngineVer = "0.1.0",
+    ScriptVer = "0.1.0"
+}

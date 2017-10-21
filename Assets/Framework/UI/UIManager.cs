@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
+using XLua;
 
 namespace Framework.UI
 {
+    [LuaCallCSharp]
     public class UIManager
     {
         private List<UIBase> winStack = new List<UIBase>();

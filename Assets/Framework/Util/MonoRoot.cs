@@ -69,16 +69,18 @@ namespace Framework
                     asset = AssetBundleManager.Instance.LoadAsset<TextAsset>("lua_logic", filename);
                 if (asset == null)
                     asset = AssetBundleManager.Instance.LoadAsset<TextAsset>("lua_data", filename);
+                if (asset == null)
+                    asset = AssetBundleManager.Instance.LoadAsset<TextAsset>("lua_network", filename);
+                if (asset == null)
+                    asset = AssetBundleManager.Instance.LoadAsset<TextAsset>("util", filename);
                 if(asset != null && !string.IsNullOrEmpty(asset.text))
                     return asset.bytes;
                 Debug.LogErrorFormat("There is no lua script {0}", filename);
                 return null;
             });
 
-            var luaScript = AssetBundleManager.Instance.LoadAsset<TextAsset>("util", "proto");
+            var luaScript = AssetBundleManager.Instance.LoadAsset<TextAsset>("util", "GameMgr");
             luaEnv.DoString(luaScript.text);
-            var readPB = luaEnv.Global.Get<Action>("readPB");
-            readPB();
         }
 
         void Update()

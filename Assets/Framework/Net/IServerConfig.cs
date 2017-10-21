@@ -1,11 +1,12 @@
 ﻿namespace Framework.Network
 {
-    public interface IServerConfig
+    public struct ServerConfig
     {
-        string ServerIP { get; }
-        int Port { get; }
-        int SendBufferSize { get; }
-        int ReceiveBufferSize { get; }
-        int EngineVer { get; }
+        public string ServerIP;
+        public int Port;
+        public int SendBufferSize;
+        public int ReceiveBufferSize;
+        public string EngineVer;
+        public string ScriptVer;
     }
 }
