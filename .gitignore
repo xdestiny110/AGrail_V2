@@ -35,3 +35,6 @@ Thumbs.db
 AssetBundles/
 StreamingAssets/
 StreamingAssets.meta
+
+Assets/XLua/Gen
+Assets/XLua/Gen.meta

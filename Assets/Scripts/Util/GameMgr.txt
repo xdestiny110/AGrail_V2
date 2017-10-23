@@ -22,5 +22,5 @@ local loginReq = {
 }
 while(not GameMgr.TCPInst.Connected) do
 end
-GameMgr.TCPInst:Send()
+GameMgr.TCPInst:Send(loginReq)
 

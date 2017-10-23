@@ -5,14 +5,15 @@ namespace Framework.Network
     [XLua.CSharpCallLua]
     public interface ICoder
     {
-        bool Decode(byte[] data, out List<Protobuf> protobufs);
+        object Decode(byte[] data, short protoID);
         byte[] Encode(Protobuf protobuf);
+        string PrintContent(Protobuf protobuf);
     }
 
     [XLua.CSharpCallLua]
     public class Protobuf
     {
         public object Proto;
-        public int ProtoID;
+        public short ProtoID;
     }
 }

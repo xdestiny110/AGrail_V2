@@ -1,16 +1,22 @@
 Coder = {
     switch = {
         [3] = function(proto)
-            return pb.encode("AGrail.LoginRequest", proto)
+            return assert(pb.encode("AGrailPB.LoginRequest", proto))
         end,
         [4] = function(proto)
-            return pb.encode("AGrail.LoginResponse", proto)
+            return assert(pb.decode("AGrailPB.LoginResponse", proto))
         end
     }
 }
 
-function Coder:Decode(data)
-    return true, nil
+function Coder:Decode(data, protoID)
+    f = self.switch[protoID]
+    if(f) then
+        return f(data)
+    else
+        print("Unknow proto id " + protobuf.ProtoID)
+    end
+    return nil
 end
 
 function Coder:Encode(protobuf)
@@ -21,4 +27,12 @@ function Coder:Encode(protobuf)
         print("Unknow proto id " + protobuf.ProtoID)
     end
     return nil
+end
+
+function Coder:PrintContent(protobuf)
+    local ret = ""
+    for k, v in pairs(protobuf.Proto) do
+         ret = ret..string.format("%s: %s\n", k, v)
+    end
+    return ret
 end
