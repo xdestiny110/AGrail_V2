@@ -1,11 +1,12 @@
 pb = require("luapb")
 local p =""
-if(CS.Framework.Framework.AssetBundle.AssetBundleManager.SimulationMode)
+if(CS.Framework.AssetBundle.AssetBundleManager.SimulationMode == true)
 then
     p = CS.Framework.Tool.UnityPathToSystemPath("Assets/ProtoFile/base.pb")
 else
     p = CS.Framework.PlatformPath.PersistFileSysPath("base.pb")
 end
+print("Load pb file from "..p)
 assert(pb.loadfile(p))
 
 require("Coder")

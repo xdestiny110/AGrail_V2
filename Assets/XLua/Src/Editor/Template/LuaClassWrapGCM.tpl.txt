@@ -63,8 +63,7 @@ ForEachCsList(methods, function(method)
 	    cls_field_count = cls_field_count + 1
 	else
 	    obj_method_count = obj_method_count + 1
-    end
-
+    end 
 end)
 
 ForEachCsList(events, function(event)
@@ -72,8 +71,7 @@ ForEachCsList(events, function(event)
 	    cls_field_count = cls_field_count + 1
 	else
 	    obj_method_count = obj_method_count + 1
-    end
-
+    end 
 end)
 
 ForEachCsList(getters, function(getter)
@@ -85,8 +83,7 @@ ForEachCsList(getters, function(getter)
 		end
 	else
 	    obj_getter_count = obj_getter_count + 1
-    end
-
+    end 
 end)
 
 ForEachCsList(setters, function(setter)
@@ -94,8 +91,27 @@ ForEachCsList(setters, function(setter)
 	    cls_setter_count = cls_setter_count + 1
 	else
 	    obj_setter_count = obj_setter_count + 1
-    end
+    end 
+end)
 
+ForEachCsList(lazymembers, function(lazymember)
+    if lazymember.IsStatic == 'true' then
+	    if 'CLS_IDX' == lazymember.Index then
+		    cls_field_count = cls_field_count + 1
+	    elseif 'CLS_GETTER_IDX' == lazymember.Index then
+		    cls_getter_count = cls_getter_count + 1
+		elseif 'CLS_SETTER_IDX' == lazymember.Index then
+		    cls_setter_count = cls_setter_count + 1
+		end
+	else
+		if 'METHOD_IDX' == lazymember.Index then
+		    obj_method_count = obj_method_count + 1
+	    elseif 'GETTER_IDX' == lazymember.Index then
+		    obj_getter_count = obj_getter_count + 1
+		elseif 'SETTER_IDX' == lazymember.Index then
+		    obj_setter_count = obj_setter_count + 1
+		end
+	end
 end)
 
 local v_type_name = CSVariableName(type)
@@ -108,7 +124,8 @@ namespace XLua
     {
         public void __Register<%=v_type_name%><%=generic_arg_list%>(RealStatePtr L) <%=type_constraints%>
         {
-			Utils.BeginObjectRegister(typeof(<%=CsFullTypeName(type)%>), L, this, <%=meta_func_count%>, <%=obj_method_count%>, <%=obj_getter_count%>, <%=obj_setter_count%>);
+		    System.Type type = typeof(<%=CsFullTypeName(type)%>);
+			Utils.BeginObjectRegister(type, L, this, <%=meta_func_count%>, <%=obj_method_count%>, <%=obj_getter_count%>, <%=obj_setter_count%>);
 			<%ForEachCsList(operators, function(operator)%>Utils.RegisterFunc(L, Utils.OBJ_META_IDX, "<%=(OpNameMap[operator.Name]):gsub('Meta', ''):lower()%>", <%=v_type_name%><%=OpNameMap[operator.Name]%><%=generic_arg_list%>);
             <%end)%>
 			<%ForEachCsList(methods, function(method) if not method.IsStatic then %>Utils.RegisterFunc(L, Utils.METHOD_IDX, "<%=method.Name%>", <%=v_type_name%>_m_<%=method.Name%><%=generic_arg_list%>);
@@ -119,37 +136,35 @@ namespace XLua
             <%end end)%>
 			<%ForEachCsList(setters, function(setter) if not setter.IsStatic then %>Utils.RegisterFunc(L, Utils.SETTER_IDX, "<%=setter.Name%>", <%=v_type_name%>_s_set_<%=setter.Name%><%=generic_arg_list%>);
             <%end end)%>
-			Utils.EndObjectRegister(typeof(<%=CsFullTypeName(type)%>), L, this, <% if type.IsArray or ((indexers.Count or 0) > 0) then %>__CSIndexer<%=v_type_name%><%=generic_arg_list%><%else%>null<%end%>, <%if type.IsArray or ((newindexers.Count or 0) > 0) then%>__NewIndexer<%=v_type_name%><%=generic_arg_list%><%else%>null<%end%>,
+			<%ForEachCsList(lazymembers, function(lazymember) if lazymember.IsStatic == 'false' then %>Utils.RegisterLazyFunc(L, Utils.<%=lazymember.Index%>, "<%=lazymember.Name%>", type, <%=lazymember.MemberType%>, <%=lazymember.IsStatic%>);
+            <%end end)%>
+			Utils.EndObjectRegister(type, L, this, <% if type.IsArray or ((indexers.Count or 0) > 0) then %>__CSIndexer<%=v_type_name%><%=generic_arg_list%><%else%>null<%end%>, <%if type.IsArray or ((newindexers.Count or 0) > 0) then%>__NewIndexer<%=v_type_name%><%=generic_arg_list%><%else%>null<%end%>,
 			    null, null, null);
 
-		    Utils.BeginClassRegister(typeof(<%=CsFullTypeName(type)%>), L, __CreateInstance<%=v_type_name%><%=generic_arg_list%>, <%=cls_field_count%>, <%=cls_getter_count%>, <%=cls_setter_count%>);
+		    Utils.BeginClassRegister(type, L, __CreateInstance<%=v_type_name%><%=generic_arg_list%>, <%=cls_field_count%>, <%=cls_getter_count%>, <%=cls_setter_count%>);
 			<%ForEachCsList(methods, function(method) if method.IsStatic then %>Utils.RegisterFunc(L, Utils.CLS_IDX, "<%=method.Overloads[0].Name%>", <%=v_type_name%>_m_<%=method.Name%><%=generic_arg_list%>);
             <% end end)%>
 			<%ForEachCsList(events, function(event) if event.IsStatic then %>Utils.RegisterFunc(L, Utils.CLS_IDX, "<%=event.Name%>", <%=v_type_name%>_e_<%=event.Name%><%=generic_arg_list%>);
 			<% end end)%>
             <%ForEachCsList(getters, function(getter) if getter.IsStatic and getter.ReadOnly then %>Utils.RegisterObject(L, this, Utils.CLS_IDX, "<%=getter.Name%>", <%=CsFullTypeName(type).."."..getter.Name%>);
             <%end end)%>
-            Utils.RegisterObject(L, this, Utils.CLS_IDX, "UnderlyingSystemType", typeof(<%=CsFullTypeName(type)%>));
 			<%ForEachCsList(getters, function(getter) if getter.IsStatic and (not getter.ReadOnly) then %>Utils.RegisterFunc(L, Utils.CLS_GETTER_IDX, "<%=getter.Name%>", <%=v_type_name%>_g_get_<%=getter.Name%><%=generic_arg_list%>);
             <%end end)%>
 			<%ForEachCsList(setters, function(setter) if setter.IsStatic then %>Utils.RegisterFunc(L, Utils.CLS_SETTER_IDX, "<%=setter.Name%>", <%=v_type_name%>_s_set_<%=setter.Name%><%=generic_arg_list%>);
             <%end end)%>
-			Utils.EndClassRegister(typeof(<%=CsFullTypeName(type)%>), L, this);
+			<%ForEachCsList(lazymembers, function(lazymember) if lazymember.IsStatic == 'true' then %>Utils.RegisterLazyFunc(L, Utils.<%=lazymember.Index%>, "<%=lazymember.Name%>", type, <%=lazymember.MemberType%>, <%=lazymember.IsStatic%>);
+            <%end end)%>
+			Utils.EndClassRegister(type, L, this);
         }
-
-
+        
         int __CreateInstance<%=v_type_name%><%=generic_arg_list%>(RealStatePtr L, int __gen_param_count) <%=type_constraints%>
         {
-            <%
-
-            if constructors.Count == 0 and (not type.IsValueType)  then
-
-            %>return LuaAPI.luaL_error(L, "<%=CsFullTypeName(type)%> does not have a constructor!");<%
-
+            <% 
+            if constructors.Count == 0 and (not type.IsValueType)  then 
+            %>return LuaAPI.luaL_error(L, "<%=CsFullTypeName(type)%> does not have a constructor!");<% 
             else %>
             ObjectTranslator translator = this;
-			<%
-
+			<% 
 			local hasZeroParamsCtor = false
 			ForEachCsList(constructors, function(constructor, ci)
 				local parameters = constructor:GetParameters()
@@ -163,22 +178,17 @@ namespace XLua
 				local real_param_count = param_count - def_count
 				local has_v_params = param_count > 0 and IsParams(parameters[param_count - 1])
 				local in_pos = 0
-			%>if(__gen_param_count <%=has_v_params and ">=" or "=="%> <%=in_num + 1 - def_count - (has_v_params and 1 or 0)%><%ForEachCsList(parameters, function(parameter, pi)
-
-			if pi >= real_param_count then return end
-
+			%>if(__gen_param_count <%=has_v_params and ">=" or "=="%> <%=in_num + 1 - def_count - (has_v_params and 1 or 0)%><%ForEachCsList(parameters, function(parameter, pi) 
+			if pi >= real_param_count then return end 
 			local parameterType = parameter.ParameterType
 			if has_v_params and pi == param_count - 1 then  parameterType = parameterType:GetElementType() end
 			if parameter.IsIn or not parameter.IsOut then in_pos = in_pos + 1
-			%> && <%=GetCheckStatement(parameterType, in_pos+1, has_v_params and pi == param_count - 1)%><%
-
+			%> && <%=GetCheckStatement(parameterType, in_pos+1, has_v_params and pi == param_count - 1)%><% 
 			end
 			end)%>)
 			{
-				<%ForEachCsList(parameters, function(parameter, pi)
-
-				if pi >= real_param_count then return end
-
+				<%ForEachCsList(parameters, function(parameter, pi) 
+				if pi >= real_param_count then return end 
 				%><%=GetCasterStatement(parameter.ParameterType, pi+2, parameter.Name, true, has_v_params and pi == param_count - 1)%>;
 				<%end)%>
 				<%=CsFullTypeName(type)%> __cl_gen_ret = new <%=CsFullTypeName(type)%>(<%ForEachCsList(parameters, function(parameter, pi) if pi >= real_param_count then return end; if pi ~=0 then %><%=', '%><% end ;if parameter.IsOut and parameter.ParameterType.IsByRef then %>out <% elseif parameter.ParameterType.IsByRef then %>ref <% end %><%=parameter.Name%><% end)%>);
@@ -186,14 +196,12 @@ namespace XLua
 				<%local in_pos = 0
 				ForEachCsList(parameters, function(parameter, pi)
 					if pi >= real_param_count then return end
-					if parameter.IsIn or not parameter.IsOut then
-
+					if parameter.IsIn or not parameter.IsOut then 
 						in_pos = in_pos + 1
 					end
 					if parameter.ParameterType.IsByRef then
 					%><%=GetPushStatement(parameter.ParameterType:GetElementType(), parameter.Name)%>;
-					<%if not parameter.IsOut and parameter.ParameterType.IsByRef and NeedUpdate(parameter.ParameterType) then
-
+					<%if not parameter.IsOut and parameter.ParameterType.IsByRef and NeedUpdate(parameter.ParameterType) then 
 			  %><%=GetUpdateStatement(parameter.ParameterType:GetElementType(), in_pos+1, parameter.Name)%>;
 					<%end%>
 				<%
@@ -215,8 +223,7 @@ namespace XLua
             return LuaAPI.luaL_error(L, "invalid arguments to <%=CsFullTypeName(type)%> constructor!");
             <% end %>
         }
-
-
+        
 		<% if type.IsArray or ((indexers.Count or 0) > 0) then %>
         int __CSIndexer<%=v_type_name%><%=generic_arg_list%>(RealStatePtr L, int __gen_param_count) <%=type_constraints%>
         {
@@ -251,14 +258,12 @@ namespace XLua
 			return 1;
         }
 		<% end %>
-
-
+        
 		<%if type.IsArray or ((newindexers.Count or 0) > 0) then%>
         int __NewIndexer<%=v_type_name%><%=generic_arg_list%>(RealStatePtr L, int __gen_param_count) <%=type_constraints%>
         {
 			<%if type.IsArray or newindexers.Count > 0 then %>ObjectTranslator translator = this;<%end%>
-			<%if type.IsArray then
-
+			<%if type.IsArray then 
 				local elementType = type:GetElementType()
 			%>
 			if (<%=GetCheckStatement(type, 1)%> && LuaAPI.lua_isnumber(L, 2) && <%=GetCheckStatement(elementType, 3)%>)
@@ -291,14 +296,12 @@ namespace XLua
             return 1;
         }
 		<% end %>
-
-
+        
         <%ForEachCsList(operators, function(operator) %>
         int <%=v_type_name%><%=OpNameMap[operator.Name]%><%=generic_arg_list%>(RealStatePtr L, int __gen_param_count) <%=type_constraints%>
         {
             ObjectTranslator translator = this;
-            <% if operator.Name ~= "op_UnaryNegation" and operator.Name ~= "op_OnesComplement"  then
-
+            <% if operator.Name ~= "op_UnaryNegation" and operator.Name ~= "op_OnesComplement"  then 
                 ForEachCsList(operator.Overloads, function(overload)
                 local left_param = overload:GetParameters()[0]
                 local right_param = overload:GetParameters()[1]
@@ -321,8 +324,7 @@ namespace XLua
             <%end%>
         }
         <%end)%>
-
-
+        
         <%ForEachCsList(methods, function(method)%>
         int <%=v_type_name%>_m_<%=method.Name%><%=generic_arg_list%>(RealStatePtr L, int __gen_param_count) <%=type_constraints%>
         {
@@ -352,22 +354,16 @@ namespace XLua
 					if pi >= real_param_count then return end
 					local parameterType = parameter.ParameterType
 					if has_v_params and pi == param_count - 1 then  parameterType = parameterType:GetElementType() end
-					if parameter.IsIn or not parameter.IsOut then in_pos = in_pos + 1;
-
-					%>&& <%=GetCheckStatement(parameterType , in_pos+param_offset, has_v_params and pi == param_count - 1)%><%
-
-					end
-
+					if parameter.IsIn or not parameter.IsOut then in_pos = in_pos + 1; 
+					%>&& <%=GetCheckStatement(parameterType , in_pos+param_offset, has_v_params and pi == param_count - 1)%><% 
+					end 
 				end)%>) <%end%>
 			{
-				<%
-
+				<% 
 				in_pos = 0;
-				ForEachCsList(parameters, function(parameter, pi)
-
+				ForEachCsList(parameters, function(parameter, pi) 
 					if pi >= real_param_count then return end
-					%><%if parameter.IsIn or not parameter.IsOut then
-
+					%><%if parameter.IsIn or not parameter.IsOut then 
 						in_pos = in_pos + 1
 					%><%=GetCasterStatement(parameter.ParameterType, in_pos+param_offset, parameter.Name, true, has_v_params and pi == param_count - 1)%><%
 					else%><%=CsFullTypeName(parameter.ParameterType)%> <%=parameter.Name%><%end%>;
@@ -380,8 +376,7 @@ namespace XLua
 				%><%=CsFullTypeName(type).."."..UnK(overload.Name)%><%
 				else
 				%>__cl_gen_to_be_invoked.<%=UnK(overload.Name)%><%
-				end%>( <%ForEachCsList(parameters, function(parameter, pi)
-
+				end%>( <%ForEachCsList(parameters, function(parameter, pi) 
 					if pi >= real_param_count then return end
 					if pi ~= 0 then %>, <% end; if parameter.IsOut and parameter.ParameterType.IsByRef then %>out <% elseif parameter.ParameterType.IsByRef then %>ref <% end %><%=parameter.Name%><% end) %> );
 				<%
@@ -392,14 +387,12 @@ namespace XLua
 				local in_pos = 0
 				ForEachCsList(parameters, function(parameter, pi)
 					if pi >= real_param_count then return end
-					if parameter.IsIn or not parameter.IsOut then
-
+					if parameter.IsIn or not parameter.IsOut then 
 						in_pos = in_pos + 1
 					end
 					if parameter.ParameterType.IsByRef then
 					%><%=GetPushStatement(parameter.ParameterType:GetElementType(), parameter.Name)%>;
-					<%if not parameter.IsOut and parameter.ParameterType.IsByRef and NeedUpdate(parameter.ParameterType) then
-
+					<%if not parameter.IsOut and parameter.ParameterType.IsByRef and NeedUpdate(parameter.ParameterType) then 
 			  %><%=GetUpdateStatement(parameter.ParameterType:GetElementType(), in_pos+param_offset, parameter.Name)%>;
 					<%end%>
 				<%
@@ -418,12 +411,9 @@ namespace XLua
             <%end%>
         }
         <% end)%>
-
-
-
-
-        <%ForEachCsList(getters, function(getter)
-
+        
+        
+        <%ForEachCsList(getters, function(getter) 
         if getter.IsStatic and getter.ReadOnly then return end --readonly static
         %>
         int <%=v_type_name%>_g_get_<%=getter.Name%><%=generic_arg_list%>(RealStatePtr L, int __gen_param_count) <%=type_constraints%>
@@ -435,8 +425,7 @@ namespace XLua
             return 1;
         }
         <%end)%>
-
-
+        
         <%ForEachCsList(setters, function(setter)
         local is_struct = IsStruct(setter.Type)
         %>
@@ -446,11 +435,9 @@ namespace XLua
 			<%if not setter.IsStatic then %>
             <%=GetSelfStatement(type)%>;
             <%if is_struct then %><%=GetCasterStatement(setter.Type, 2, "__cl_gen_value", true)%>;
-			__cl_gen_to_be_invoked.<%=UnK(setter.Name)%> = __cl_gen_value;<% else
-
+			__cl_gen_to_be_invoked.<%=UnK(setter.Name)%> = __cl_gen_value;<% else 
               %><%=GetCasterStatement(setter.Type, 2, "__cl_gen_to_be_invoked." .. UnK(setter.Name))%>;<%end
-            else
-
+            else 
 				if is_struct then %><%=GetCasterStatement(setter.Type, 1, "__cl_gen_value", true)%>;
 			<%=CsFullTypeName(type)%>.<%=UnK(setter.Name)%> = __cl_gen_value;<%else
           %><%=GetCasterStatement(setter.Type, 1, CsFullTypeName(type) .."." .. UnK(setter.Name))%>;<%end
@@ -474,29 +461,18 @@ namespace XLua
 			
 			if (__gen_param_count == 3)
 			{
-				System.IntPtr strlen;
-
-				System.IntPtr str = LuaAPI.lua_tolstring(L, 2, out strlen);
-
-				if (str != System.IntPtr.Zero && strlen.ToInt32() == 1)
-				{
-					byte op = System.Runtime.InteropServices.Marshal.ReadByte(str);
-				
-					<%if event.CanAdd then%>
-					if (op == (byte)'+') {
-						__cl_gen_to_be_invoked.<%=UnK(event.Name)%> += __gen_delegate;
-						return 0;
-					}
-
-					<%end%>
-					<%if event.CanRemove then%>
-					if (op == (byte)'-') {
-						__cl_gen_to_be_invoked.<%=UnK(event.Name)%> -= __gen_delegate;
-						return 0;
-					}
-
-					<%end%>
-				}
+				<%if event.CanAdd then%>
+				if (LuaAPI.xlua_is_eq_str(L, 2, "+")) {
+					__cl_gen_to_be_invoked.<%=UnK(event.Name)%> += __gen_delegate;
+					return 0;
+				} 
+				<%end%>
+				<%if event.CanRemove then%>
+				if (LuaAPI.xlua_is_eq_str(L, 2, "-")) {
+					__cl_gen_to_be_invoked.<%=UnK(event.Name)%> -= __gen_delegate;
+					return 0;
+				} 
+				<%end%>
 			}
 			LuaAPI.luaL_error(L, "invalid arguments to <%=CsFullTypeName(type)%>.<%=event.Name%>!");
             return 0;
@@ -513,18 +489,16 @@ namespace XLua
 			}
 			
 			<%if event.CanAdd then%>
-			if (__gen_param_count == 2 && LuaAPI.lua_tostring(L, 1) == "+") {
+			if (__gen_param_count == 2 && LuaAPI.xlua_is_eq_str(L, 1, "+")) {
 				<%=CsFullTypeName(type)%>.<%=UnK(event.Name)%> += __gen_delegate;
 				return 0;
-			}
-
+			} 
 			<%end%>
 			<%if event.CanRemove then%>
-			if (__gen_param_count == 2 && LuaAPI.lua_tostring(L, 1) == "-") {
+			if (__gen_param_count == 2 && LuaAPI.xlua_is_eq_str(L, 1, "-")) {
 				<%=CsFullTypeName(type)%>.<%=UnK(event.Name)%> -= __gen_delegate;
 				return 0;
-			}
-
+			} 
 			<%end%>
 			return LuaAPI.luaL_error(L, "invalid arguments to <%=CsFullTypeName(type)%>.<%=event.Name%>!");
         }

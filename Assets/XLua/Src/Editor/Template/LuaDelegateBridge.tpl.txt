@@ -29,22 +29,16 @@ namespace XLua
 		local out_idx = has_return and 2 or 1
 		if has_return then out_num = out_num + 1 end
 		%>
-		public <%=return_type_name%> __Gen_Delegate_Imp<%=group_idx%>(<%ForEachCsList(parameters, function(parameter, pi)
-
-			if pi ~= 0 then
-
-				%>, <%
-
+		public <%=return_type_name%> __Gen_Delegate_Imp<%=group_idx%>(<%ForEachCsList(parameters, function(parameter, pi) 
+			if pi ~= 0 then 
+				%>, <% 
 			end
-			if parameter.IsOut then
-
+			if parameter.IsOut then 
 				%>out <%
 			elseif parameter.ParameterType.IsByRef then
 				%>ref <%
-			end
-
-			%><%=CsFullTypeName(parameter.ParameterType)%> p<%=pi%><%
-
+			end 
+			%><%=CsFullTypeName(parameter.ParameterType)%> p<%=pi%><% 
 		end) %>)
 		{
 #if THREAD_SAFE || HOTFIX_ENABLE
@@ -54,32 +48,24 @@ namespace XLua
                 RealStatePtr L = luaEnv.rawL;
                 int err_func =LuaAPI.load_error_func(L, errorFuncRef);
                 <%if CallNeedTranslator(delegate, "") then %>ObjectTranslator translator = luaEnv.translator;<%end%>
-
-
+                
                 LuaAPI.lua_getref(L, luaReference);
-
-
+                
                 <%
                 local param_count = parameters.Length
                 local has_v_params = param_count > 0 and parameters[param_count - 1].IsParamArray
-                ForEachCsList(parameters, function(parameter, pi)
-
-                    if parameter.IsIn or not parameter.IsOut then
-
+                ForEachCsList(parameters, function(parameter, pi) 
+                    if parameter.IsIn or not parameter.IsOut then 
                         %><%=GetPushStatement(parameter.ParameterType, 'p' .. pi, has_v_params and pi == param_count - 1)%>;
-                <%
-
+                <% 
                     end
                 end) %>
                 int __gen_error = LuaAPI.lua_pcall(L, <%=has_v_params and ((in_num - 1) .. " + (p".. (param_count - 1) .. " == null ? 0 : p" .. (param_count - 1) .. ".Length)" ) or in_num%>, <%=out_num%>, err_func);
                 if (__gen_error != 0)
                     luaEnv.ThrowExceptionFromError(err_func - 1);
-
-
-                <%ForEachCsList(parameters, function(parameter, pi)
-
-                    if parameter.IsOut or parameter.ParameterType.IsByRef then
-
+                
+                <%ForEachCsList(parameters, function(parameter, pi) 
+                    if parameter.IsOut or parameter.ParameterType.IsByRef then 
                         %><%=GetCasterStatement(parameter.ParameterType, "err_func" .. (" + "..out_idx), 'p' .. pi)%>;
                 <%
                     out_idx = out_idx + 1
@@ -93,8 +79,7 @@ namespace XLua
 #endif
 		}
         <%end)%>
-
-
+        
 		static DelegateBridge()
 		{
 		    Gen_Flag = true;
@@ -117,9 +102,8 @@ namespace XLua
 		    end)
 		end)
 		%>
-		    throw new InvalidCastException("This type must add to CSharpCallLua: " + type);
+		    return null;
 		}
 	}
-
-
+    
 }

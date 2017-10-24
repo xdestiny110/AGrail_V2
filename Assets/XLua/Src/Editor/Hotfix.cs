@@ -422,8 +422,7 @@ namespace XLua
                 if (method.Name != ".cctor" && !method.IsAbstract && !method.IsPInvokeImpl && method.Body != null && !method.Name.Contains("<"))
                 {
                     //Debug.Log(method);
-                    if ((isInline || method.HasGenericParameters || genericInOut(assembly, method, hotfixType))
-
+                    if ((isInline || method.HasGenericParameters || genericInOut(assembly, method, hotfixType)) 
                         ? !injectGenericMethod(assembly, method, hotfixType, stateTable) :
                         !injectMethod(assembly, method, hotfixType, stateTable))
                     {
@@ -445,10 +444,10 @@ namespace XLua
                 return;
             }
             HotfixInject("./Library/ScriptAssemblies/Assembly-CSharp.dll", null, CSObjectWrapEditor.GeneratorConfig.common_path + "Resources/hotfix_id_map.lua.txt", Utils.GetAllTypes());
+            AssetDatabase.Refresh();
         }
 #endif
-
-
+        
         public static void Config(IEnumerable<Type> cfg_check_types)
         {
             if (cfg_check_types != null)
@@ -595,8 +594,7 @@ namespace XLua
         static bool injectMethod(AssemblyDefinition assembly, MethodDefinition method, HotfixFlagInTool hotfixType, FieldReference stateTable)
         {
             var type = method.DeclaringType;
-
-
+            
             bool isFinalize = (method.Name == "Finalize" && method.IsSpecialName);
 
             MethodReference invoke = null;
@@ -699,8 +697,7 @@ namespace XLua
                     else if (i == 0 && !method.IsStatic && type.IsValueType)
                     {
                         processor.InsertBefore(insertPoint, processor.Create(OpCodes.Ldobj, type));
-
-
+                        
                     }
                     if (ignoreValueType)
                     {
@@ -803,8 +800,7 @@ namespace XLua
         static bool injectGenericMethod(AssemblyDefinition assembly, MethodDefinition method, HotfixFlagInTool hotfixType, FieldReference stateTable)
         {
             var type = method.DeclaringType;
-
-
+            
             bool isFinalize = (method.Name == "Finalize" && method.IsSpecialName);
             bool isIntKey = hotfixType.HasFlag(HotfixFlagInTool.IntKey) && !type.HasGenericParameters;
             //isIntKey = !type.HasGenericParameters;
@@ -1119,6 +1115,7 @@ namespace XLua
             hotfix_injection.WaitForExit();
             File.Delete(hotfix_cfg_in_editor);
             UnityEngine.Debug.Log(hotfix_injection.StandardOutput.ReadToEnd());
+            AssetDatabase.Refresh();
         }
     }
 }

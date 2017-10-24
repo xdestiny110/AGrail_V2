@@ -32,7 +32,6 @@ namespace XLua.CSObjectWrap
 			Utils.EndObjectRegister(typeof(<%=CsFullTypeName(type)%>), L, translator, null, null, null, null, null);
 			
 			Utils.BeginClassRegister(typeof(<%=CsFullTypeName(type)%>), L, null, 1, 0, 0);
-            Utils.RegisterObject(L, translator, Utils.CLS_IDX, "UnderlyingSystemType", typeof(<%=CsFullTypeName(type)%>));
             Utils.EndClassRegister(typeof(<%=CsFullTypeName(type)%>), L, translator);
         }
 		
@@ -48,25 +47,17 @@ namespace XLua.CSObjectWrap
 			ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
 			try {
 				if(LuaAPI.lua_gettop(L) == <%=in_num+1%> && <%=GetCheckStatement(type, 1)%><%
-					ForEachCsList(parameters, function(parameter)
-
-						if parameter.IsIn or not parameter.IsOut then in_pos = in_pos + 1;
-
-						%>&& <%=GetCheckStatement(parameter.ParameterType, in_pos+1)%><%
-
-						end
-
+					ForEachCsList(parameters, function(parameter) 
+						if parameter.IsIn or not parameter.IsOut then in_pos = in_pos + 1; 
+						%>&& <%=GetCheckStatement(parameter.ParameterType, in_pos+1)%><% 
+						end 
 					end)%>)
 				{
-                <%
-
+                <% 
                 in_pos = 0;
-                ForEachCsList(parameters, function(parameter)
-
-                    %><%
-
-                    if parameter.IsIn or not parameter.IsOut then
-
+                ForEachCsList(parameters, function(parameter) 
+                    %><% 
+                    if parameter.IsIn or not parameter.IsOut then 
                         in_pos = in_pos + 1
                         %><%=GetCasterStatement(parameter.ParameterType, in_pos+1, parameter.Name, true)%><%
 					else%><%=CsFullTypeName(parameter.ParameterType)%> <%=parameter.Name%><%end%>;
@@ -85,14 +76,12 @@ namespace XLua.CSObjectWrap
                 end
                 local in_pos = 0
                 ForEachCsList(parameters, function(parameter)
-                    if parameter.IsIn or not parameter.IsOut then
-
+                    if parameter.IsIn or not parameter.IsOut then 
                         in_pos = in_pos + 1
                     end
                     if parameter.IsOut or parameter.ParameterType.IsByRef then
                     %><%=GetPushStatement(parameter.ParameterType:GetElementType(), parameter.Name)%>;
-                    <%if not parameter.IsOut and parameter.ParameterType.IsByRef and NeedUpdate(parameter.ParameterType) then
-
+                    <%if not parameter.IsOut and parameter.ParameterType.IsByRef and NeedUpdate(parameter.ParameterType) then 
                   %><%=GetUpdateStatement(parameter.ParameterType:GetElementType(), in_pos+param_offset, parameter.Name)%>;
                         <%end%>
                 <%

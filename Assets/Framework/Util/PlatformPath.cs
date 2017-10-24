@@ -29,15 +29,19 @@ namespace Framework
 
         public static string StreamPath2URL(string pathUnderStream)
         {
-            if (Application.platform == RuntimePlatform.IPhonePlayer
-                || Application.platform == RuntimePlatform.WindowsPlayer
-                || Application.platform == RuntimePlatform.WindowsEditor
-                || Application.platform == RuntimePlatform.OSXEditor)
-            {
-                return pathUnderStream.StartsWith(Application.streamingAssetsPath) ? 
-                    string.Format("file:///{0}", pathUnderStream) : 
-                    string.Format("file:///{0}/{1}", Application.streamingAssetsPath, pathUnderStream);
-            }
+			if (Application.platform == RuntimePlatform.WindowsPlayer
+			             || Application.platform == RuntimePlatform.WindowsEditor) 
+			{
+				return pathUnderStream.StartsWith (Application.streamingAssetsPath) ? 
+                    string.Format ("file:///{0}", pathUnderStream) : 
+                    string.Format ("file:///{0}/{1}", Application.streamingAssetsPath, pathUnderStream);
+			} 
+			else if (Application.platform == RuntimePlatform.IPhonePlayer ||
+			        Application.platform == RuntimePlatform.OSXEditor) {
+				return pathUnderStream.StartsWith (Application.streamingAssetsPath) ? 
+					string.Format ("file://{0}", pathUnderStream) : 
+					string.Format ("file://{0}/{1}", Application.streamingAssetsPath, pathUnderStream);
+			}
             else
             {
                 return pathUnderStream.StartsWith(Application.streamingAssetsPath) ? 
@@ -48,10 +52,8 @@ namespace Framework
 
         public static string PersistPath2URL(string pathUnderPersit)
         {
-            if (Application.platform == RuntimePlatform.IPhonePlayer
-                || Application.platform == RuntimePlatform.WindowsPlayer
-                || Application.platform == RuntimePlatform.WindowsEditor
-                || Application.platform == RuntimePlatform.OSXEditor)
+            if (Application.platform == RuntimePlatform.WindowsPlayer
+                || Application.platform == RuntimePlatform.WindowsEditor)
             {
                 return pathUnderPersit.StartsWith(Application.persistentDataPath) ? 
                     string.Format("file:///{0}", pathUnderPersit) : 

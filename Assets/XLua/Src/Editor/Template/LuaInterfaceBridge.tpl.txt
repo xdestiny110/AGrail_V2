@@ -39,22 +39,16 @@ namespace XLua.CSObjectWrap
             local out_idx = has_return and 2 or 1
 			if has_return then out_num = out_num + 1 end
         %>
-		public <%=return_type_name%> <%=method.Name%>(<%ForEachCsList(parameters, function(parameter, pi)
-
-			if pi ~= 0 then
-
-				%>, <%
-
+		public <%=return_type_name%> <%=method.Name%>(<%ForEachCsList(parameters, function(parameter, pi) 
+			if pi ~= 0 then 
+				%>, <% 
 			end
-			if parameter.IsOut then
-
+			if parameter.IsOut then 
 				%>out <%
 			elseif parameter.ParameterType.IsByRef then
 				%>ref <%
-			end
-
-			%><%=CsFullTypeName(parameter.ParameterType)%> <%=parameter.Name%><%
-
+			end 
+			%><%=CsFullTypeName(parameter.ParameterType)%> <%=parameter.Name%><% 
 		end) %>)
 		{
 #if THREAD_SAFE || HOTFIX_ENABLE
@@ -82,23 +76,18 @@ namespace XLua.CSObjectWrap
 				local param_count = parameters.Length
                 local has_v_params = param_count > 0 and IsParams(parameters[param_count - 1])
 
-				ForEachCsList(parameters, function(parameter, pi)
-
-					if parameter.IsIn or not parameter.IsOut then
-
+				ForEachCsList(parameters, function(parameter, pi) 
+					if parameter.IsIn or not parameter.IsOut then 
 						%><%=GetPushStatement(parameter.ParameterType, parameter.Name, has_v_params and pi == param_count - 1)%>;
-				<%
-
+				<% 
 					end
 				end) %>
 				int __gen_error = LuaAPI.lua_pcall(L, <%=has_v_params and ((in_num) .. " + " .. parameters[param_count - 1].Name .. ".Length" ) or (in_num + 1)%>, <%=out_num%>, err_func);
 				if (__gen_error != 0)
 					luaEnv.ThrowExceptionFromError(err_func - 1);
 				
-				<%ForEachCsList(parameters, function(parameter)
-
-					if parameter.IsOut or parameter.ParameterType.IsByRef then
-
+				<%ForEachCsList(parameters, function(parameter) 
+					if parameter.IsOut or parameter.ParameterType.IsByRef then 
 						%><%=GetCasterStatement(parameter.ParameterType, "err_func" .. (" + "..out_idx), parameter.Name)%>;
 				<%
 					out_idx = out_idx + 1
@@ -116,12 +105,10 @@ namespace XLua.CSObjectWrap
         <%
         ForEachCsList(propertys, function(property)
         %>
-        public <%=CsFullTypeName(property.PropertyType)%> <%=property.Name%>
-
+        public <%=CsFullTypeName(property.PropertyType)%> <%=property.Name%> 
         {
             <%if property.CanRead then%>
-            get
-
+            get 
             {
 #if THREAD_SAFE || HOTFIX_ENABLE
                 lock (luaEnv.luaEnvLock)
@@ -169,24 +156,20 @@ namespace XLua.CSObjectWrap
             <%end%>
         }
         <%end)%>
-
-
+        
         <%ForEachCsList(events, function(event) %>
         public event <%=CsFullTypeName(event.EventHandlerType)%> <%=event.Name%>;
         <%end)%>
 		
-		<%ForEachCsList(indexers, function(indexer)
-
+		<%ForEachCsList(indexers, function(indexer) 
 		local ptype = (indexer:GetGetMethod() or indexer:GetSetMethod()):GetParameters()[0].ParameterType
 		%>
-        public <%=CsFullTypeName(indexer.PropertyType)%> this[<%=CsFullTypeName(ptype)%> field] {
-
+        public <%=CsFullTypeName(indexer.PropertyType)%> this[<%=CsFullTypeName(ptype)%> field] { 
 		<%if indexer:GetGetMethod() then%>
 		    get { return default(<%=CsFullTypeName(indexer.PropertyType)%>); }
 		<%end%>
 		<%if indexer:GetSetMethod() then%>
-			set { }
-
+			set { } 
 		<%end%>
 		}
         <%end)%>

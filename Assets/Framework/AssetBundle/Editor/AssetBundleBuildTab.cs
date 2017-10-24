@@ -4,7 +4,6 @@ using System.IO;
 
 using UnityEngine.AssetBundles.AssetBundleDataSource;
 using System.Text;
-using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 
 namespace UnityEngine.AssetBundles
@@ -339,7 +338,7 @@ namespace UnityEngine.AssetBundles
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
             //¸´ÖÆpbÎÄ¼þ
             if (Directory.Exists(m_protoBinPath))
-                Framework.Tool.DirectoryCopy(m_protoBinPath, m_OutputPath, new Regex(@".*\.pb"));
+                Framework.Tool.DirectoryCopy(m_protoBinPath, m_OutputPath, new Regex(@".*\.pb$"));
 
             generateCheckFile();
 
@@ -415,8 +414,8 @@ namespace UnityEngine.AssetBundles
             List<Framework.AssetBundle.CheckFile> ret = new List<Framework.AssetBundle.CheckFile>();
             foreach(var v in files)
                 if(!v.Name.EndsWith("manifest"))
-                    ret.Add(new Framework.AssetBundle.CheckFile() { name = v.Name, hash = computeMD5(v.FullName) });
-            var json = JsonConvert.SerializeObject(ret, Formatting.Indented);
+                    ret.Add(new Framework.AssetBundle.CheckFile() { name = v.Name, hash = computeMD5(v.FullName) });			
+			var json = LitJson.JsonMapper.ToJson (ret);            
             using (FileStream fs = new FileStream(Path.Combine(m_OutputPath, "CheckFile"), FileMode.Create, FileAccess.Write))
             {
                 var bytes = Encoding.UTF8.GetBytes(json);

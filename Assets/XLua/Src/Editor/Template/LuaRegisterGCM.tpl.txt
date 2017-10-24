@@ -25,8 +25,7 @@ namespace XLua.CSObjectWrap
 			    <%ForEachCsList(wraps, function(wrap)%>
 				translator.DelayWrapLoader(typeof(<%=CsFullTypeName(wrap)%>), translator.__Register<%=CSVariableName(wrap)%>);
 				<%end)%>
-				<% if generic_wraps then
-
+				<% if generic_wraps then 
 				for generic_def, instances in pairs(generic_wraps) do
 				for _, args in ipairs(instances) do
 				local generic_arg_list = "<"

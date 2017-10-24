@@ -73,8 +73,7 @@ local function report_output_line(rp, stat_interval)
     local average_time    = string.format("%04.3f", rp.total_time / rp.count * 1000)
     local relative_time = string.format("%03.2f%%", (rp.total_time / stat_interval) * 100 )
     local count         = string.format("%7i", rp.count)
-
-
+        
     return string.format("|%-40.40s: %-50.50s: %-12s: %-12s: %-12s: %-12s|\n", name, source, total_time, average_time, relative_time, count)
 end
 
@@ -87,13 +86,11 @@ local sort_funcs = {
 local function report(sort_by)
     sethook()
     local sort_func = type(sort_by) == 'function' and sort_by or sort_funcs[sort_by]
-
-
+    
     local FORMAT_HEADER_LINE       = "|%-40s: %-50s: %-12s: %-12s: %-12s: %-12s|\n"
     local header = string.format( FORMAT_HEADER_LINE, "FUNCTION", "SOURCE", "TOTAL(MS)", "AVERAGE(MS)", "RELATIVE", "CALLED" )
     local stat_interval = get_time() - (start_time or get_time())
-
-
+    
     local report_list = {}
     for _, rp in pairs(func_info_map) do
         table.insert(report_list, {
@@ -103,22 +100,17 @@ local function report(sort_by)
             output = report_output_line(rp, stat_interval)
         })
     end
-
-
+    
     table.sort(report_list, sort_func or sort_funcs.TOTAL)
-
-
+    
     local output = header
-
-
+    
     for i, rp in ipairs(report_list) do
         output = output .. rp.output
     end
-
-
+    
     sethook(on_hook, 'cr')
-
-
+    
     return output
 end
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
-using Newtonsoft.Json;
+using System.Text;
 
 namespace Framework.AssetBundle
 {
@@ -122,8 +122,7 @@ namespace Framework.AssetBundle
 
         void Awake()
         {
-            Debug.LogFormat("SimulationMode = {0}", SimulationMode);
-            StartCoroutine(LoadCheckFileAsync());
+            Debug.LogFormat("SimulationMode = {0}", SimulationMode);            
         }
 
         public UnityEngine.AssetBundle GetLoadedBundle(string bundleName)
@@ -163,6 +162,7 @@ namespace Framework.AssetBundle
                 yield break;
 
             //移动pb文件至Persistent path
+			Debug.Log("move pb file to persistent path");
             foreach(var v in localCheckFile)
             {
                 if(v.name.EndsWith(".pb") && v.location == CheckFile.Location.Local)
@@ -178,6 +178,7 @@ namespace Framework.AssetBundle
             }
 
             //比较check file
+			Debug.Log("Compare check file");
             List<CheckFile> finalCheckFile = new List<CheckFile>();
             if (remoteCheckFile.Count > 0)
             {
@@ -216,17 +217,16 @@ namespace Framework.AssetBundle
                 yield return v;
 
             //更新本地checkfile
+			Debug.Log("Update check file");
             finalCheckFile.ForEach(cf => { cf.location = (cf.location == CheckFile.Location.Remote) ? CheckFile.Location.Persistent : cf.location; });
-            using (FileStream fs = new FileStream(PlatformPath.PersistFileSysPath("CheckFile"), FileMode.Create, FileAccess.Write))
-            {
-                var json = JsonConvert.SerializeObject(finalCheckFile, Formatting.Indented);
-                var bytes = System.Text.Encoding.UTF8.GetBytes(json);
-                fs.Write(bytes, 0, bytes.Length);
-            }
+			writeCheckFile (PlatformPath.PersistFileSysPath ("CheckFile"), finalCheckFile);
 
             //TODO: 目前直接读取所有bundle, 对于大工程需要改为依赖加载
+			Debug.Log("load all bundle");
             foreach (var v in finalCheckFile)
             {
+				if (v.name.EndsWith (".pb"))
+					continue;
                 switch (v.location)
                 {
                     case CheckFile.Location.Local:
@@ -319,9 +319,27 @@ namespace Framework.AssetBundle
                     Debug.LogErrorFormat("WWW error occur. Error = {0}", www.error);
                     yield break;
                 }
-                checkFile.AddRange(JsonConvert.DeserializeObject<List<CheckFile>>(www.text));
+				LitJson.JsonData data = LitJson.JsonMapper.ToObject(www.text);
+				for(int i = 0;i<data.Count;i++){
+					var c = new CheckFile(){
+						name = data[i]["name"].ToString(), 
+						hash = data[i]["hash"].ToString(), 
+						location = (CheckFile.Location)(int)data[i]["location"]
+					};
+					checkFile.Add(c);
+				}
             }
         }
+
+		private void writeCheckFile(string filePath, List<CheckFile> checkFiles)
+		{
+			var json = LitJson.JsonMapper.ToJson (checkFiles);
+			using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+			{
+				var bytes = Encoding.UTF8.GetBytes(json);
+				fs.Write(bytes, 0, bytes.Length);
+			}
+		}
 
         private IEnumerator downloadAssetBundle(string bundlePath, string bundleName)
         {

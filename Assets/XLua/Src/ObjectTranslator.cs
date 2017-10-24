@@ -150,7 +150,20 @@ namespace XLua
             }
             else
             {
+#if !GEN_CODE_MINIMIZE && !ENABLE_IL2CPP && (UNITY_EDITOR || XLUA_GENERAL) && !FORCE_REFLECTION
+                if (!DelegateBridge.Gen_Flag && !type.IsEnum() && !typeof(Delegate).IsAssignableFrom(type) && Utils.IsPublic(type))
+                {
+                    Type wrap = ce.EmitTypeWrap(type);
+                    MethodInfo method = wrap.GetMethod("__Register", BindingFlags.Static | BindingFlags.Public);
+                    method.Invoke(null, new object[] { L });
+                }
+                else
+                {
+                    Utils.ReflectionWrap(L, type);
+                }
+#else
                 Utils.ReflectionWrap(L, type);
+#endif
 #if NOT_GEN_WARNING
 #if !XLUA_GENERAL
                 UnityEngine.Debug.LogWarning(string.Format("{0} not gen, using reflection instead", type));
@@ -329,7 +342,37 @@ namespace XLua
 #if UNITY_EDITOR || XLUA_GENERAL
         CodeEmit ce = new CodeEmit();
 #endif
-        
+        Delegate getDelegate(DelegateBridgeBase bridge, Type delegateType)
+        {
+            Delegate ret = bridge.GetDelegateByType(delegateType);
+
+            if (ret != null)
+            {
+                return ret;
+            }
+
+            if (delegateType == typeof(Delegate) || delegateType == typeof(MulticastDelegate))
+            {
+                return null;
+            }
+
+            // get by parameters
+            MethodInfo delegateMethod = delegateType.GetMethod("Invoke");
+            var methods = bridge.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+            for (int i = 0; i < methods.Length; i++)
+            {
+                if (!methods[i].IsConstructor && Utils.IsParamsMatch(delegateMethod, methods[i]))
+                {
+#if !UNITY_WSA || UNITY_EDITOR
+                    return Delegate.CreateDelegate(delegateType, bridge, methods[i]);
+#else
+                    return methods[i].CreateDelegate(delegateType, bridge); 
+#endif
+                }
+            }
+
+            throw new InvalidCastException("This type must add to CSharpCallLua: " + delegateType);
+        }
         Dictionary<int, WeakReference> delegate_bridges = new Dictionary<int, WeakReference>();
         public object CreateDelegateBridge(RealStatePtr L, Type delegateType, int idx)
         {
@@ -354,7 +397,7 @@ namespace XLua
                     }
                     else
                     {
-                        exist_delegate = exist_bridge.GetDelegateByType(delegateType);
+                        exist_delegate = getDelegate(exist_bridge, delegateType);
                         exist_bridge.AddDelegate(delegateType, exist_delegate);
                         return exist_delegate;
                     }
@@ -399,7 +442,7 @@ namespace XLua
                 return bridge;
             }
             try {
-                var ret = bridge.GetDelegateByType(delegateType);
+                var ret = getDelegate(bridge, delegateType);
                 bridge.AddDelegate(delegateType, ret);
                 delegate_bridges[reference] = new WeakReference(bridge);
                 return ret;
@@ -522,6 +565,9 @@ namespace XLua
             LuaAPI.lua_rawset(L, -3);
             LuaAPI.xlua_pushasciistring(L, "metatable_operation");
             LuaAPI.lua_pushstdcallcfunction(L, StaticLuaCallbacks.XLuaMetatableOperation);
+            LuaAPI.lua_rawset(L, -3);
+            LuaAPI.xlua_pushasciistring(L, "tofunction");
+            LuaAPI.lua_pushstdcallcfunction(L, StaticLuaCallbacks.ToFunction);
             LuaAPI.lua_rawset(L, -3);
             LuaAPI.lua_pop(L, 1);
 
@@ -816,6 +862,12 @@ namespace XLua
         //only store the type id to type map for struct
         Dictionary<int, Type> typeMap = new Dictionary<int, Type>();
 
+        public int GetTypeId(RealStatePtr L, Type type)
+        {
+            bool isFirst;
+            return getTypeId(L, type, out isFirst);
+        }
+
         internal int getTypeId(RealStatePtr L, Type type, out bool is_first, LOGLEVEL log_level = LOGLEVEL.WARN)
         {
             int type_id;
@@ -859,7 +911,7 @@ namespace XLua
                 }
                 else
                 {
-                    if (type.IsEnum)
+                    if (type.IsEnum())
                     {
                         LuaAPI.xlua_pushasciistring(L, "__band");
                         LuaAPI.lua_pushstdcallcfunction(L, metaFunctions.EnumAndMeta);
@@ -1443,6 +1495,13 @@ namespace XLua
         {
             if (decimal_type_id == -1) return false;
             return LuaAPI.xlua_gettypeid(L, index) == decimal_type_id;
+        }
+
+        public decimal GetDecimal(RealStatePtr L, int index)
+        {
+            decimal ret;
+            Get(L, index, out ret);
+            return ret;
         }
 
         public void Get(RealStatePtr L, int index, out decimal val)

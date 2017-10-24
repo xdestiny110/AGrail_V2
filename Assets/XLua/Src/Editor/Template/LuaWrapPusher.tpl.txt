@@ -40,13 +40,11 @@ namespace XLua
 			end)%>
 			}
         }
-
-
+        
         static <%=init_class_name%> s_<%=init_class_name%>_dumb_obj = new <%=init_class_name%>();
         static <%=init_class_name%> <%=init_class_name%>_dumb_obj {get{return s_<%=init_class_name%>_dumb_obj;}}
         <%end%>
-
-
+        
         <%ForEachCsList(purevaluetypes, function(type_info)
         local type_id_var_name = CSVariableName(type_info.Type) .. '_TypeID'
 		local enum_ref_var_name = CSVariableName(type_info.Type)..'_EnumRef'
@@ -158,8 +156,7 @@ namespace XLua
                 throw new Exception("try to update a data with lua type:" + LuaAPI.lua_type(L, index));
             }
         }
-
-
+        
         <%end)%>
 		// table cast optimze
 		<%ForEachCsList(tableoptimzetypes, function(type_info)
@@ -190,8 +187,7 @@ namespace XLua
             }
         }
 		<%end)%>
-
-
+        
     }
 	
 	public partial class StaticLuaCallbacks

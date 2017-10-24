@@ -28,16 +28,13 @@ namespace XLua
 			Utils.EndObjectRegister(typeof(<%=CsFullTypeName(type)%>), L, this, null, null, null, null, null);
 			
 			Utils.BeginClassRegister(typeof(<%=CsFullTypeName(type)%>), L, null, <%=fields.Length + 1%>, 0, 0);
-            <% ForEachCsList(fields, function(field)
-
+            <% ForEachCsList(fields, function(field) 
 			if field.Name == "value__" or IsObsolute(field) then return end
 			%>
             Utils.RegisterObject(L, this, Utils.CLS_IDX, "<%=field.Name%>", <%=CsFullTypeName(type)%>.<%=UnK(field.Name)%>);
             <%end)%>
-            Utils.RegisterObject(L, this, Utils.CLS_IDX, "UnderlyingSystemType", typeof(<%=CsFullTypeName(type)%>));
 			Utils.RegisterFunc(L, Utils.CLS_IDX, "__CastFrom", __CastFrom<%=v_type_name%>);
-
-
+            
             Utils.EndClassRegister(typeof(<%=CsFullTypeName(type)%>), L, this);
         }
 		
@@ -52,8 +49,7 @@ namespace XLua
             {
 			    <%
                 local is_first = true
-				ForEachCsList(fields, function(field, i)
-
+				ForEachCsList(fields, function(field, i) 
 			        if field.Name == "value__" or IsObsolute(field) then return end
 			    %><%=(is_first and "" or "else ")%>if (LuaAPI.xlua_is_eq_str(L, 1, "<%=field.Name%>"))
                 {

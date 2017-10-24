@@ -1,5 +1,6 @@
 ﻿using Framework.AssetBundle;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using XLua;
@@ -78,10 +79,14 @@ namespace Framework
                 Debug.LogErrorFormat("There is no lua script {0}", filename);
                 return null;
             });
-
-            var luaScript = AssetBundleManager.Instance.LoadAsset<TextAsset>("util", "GameMgr");
-            luaEnv.DoString(luaScript.text);
         }
+
+		IEnumerator Start()
+		{
+			yield return AssetBundleManager.Instance.LoadCheckFileAsync ();
+			var luaScript = AssetBundleManager.Instance.LoadAsset<TextAsset>("util", "GameMgr");
+			luaEnv.DoString(luaScript.text);
+		}
 
         void Update()
         {
