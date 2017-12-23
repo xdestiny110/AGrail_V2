@@ -52,10 +52,13 @@ public static class ExampleGenConfig
     public static List<Type> CSharpCallLua = new List<Type>() {
                 typeof(Action),
                 typeof(Action<object[]>),
+                typeof(Action<string, object[]>),
                 typeof(Func<double, double, double>),
                 typeof(Action<string>),
                 typeof(Action<double>),
+                typeof(Action<float>),
                 typeof(UnityEngine.Events.UnityAction),
+                typeof(UnityEngine.Events.UnityAction<UnityEngine.SceneManagement.Scene, UnityEngine.SceneManagement.LoadSceneMode>),
                 typeof(System.Collections.IEnumerator)
             };
 

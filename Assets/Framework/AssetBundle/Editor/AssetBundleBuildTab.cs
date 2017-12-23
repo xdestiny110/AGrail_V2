@@ -1,4 +1,4 @@
-using UnityEditor;
+锘縰sing UnityEditor;
 using System.Collections.Generic;
 using System.IO;
 
@@ -30,6 +30,8 @@ namespace UnityEngine.AssetBundles
 
         [SerializeField]
         private Vector2 m_ScrollPosition;
+
+        private string oldCheckFileStr = null;
 
 
         class ToggleData
@@ -287,6 +289,10 @@ namespace UnityEngine.AssetBundles
                     return;
                 }
 
+                //淇濈暀鍘熸湁鐨刢heckfile
+                if (File.Exists(Path.Combine(m_OutputPath, "CheckFile")))
+                    oldCheckFileStr = File.ReadAllText(Path.Combine(m_OutputPath, "CheckFile"));
+
                 if (m_ForceRebuild.state)
                 {
                     string message = "Do you want to delete all files in the directory " + m_OutputPath;
@@ -336,7 +342,7 @@ namespace UnityEngine.AssetBundles
             AssetBundleModel.Model.DataSource.BuildAssetBundles (buildInfo);
 
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
-            //复制pb文件
+            //澶嶅埗pb鏂囦欢
             if (Directory.Exists(m_protoBinPath))
                 Framework.Tool.DirectoryCopy(m_protoBinPath, m_OutputPath, new Regex(@".*\.pb$"));
 
@@ -408,14 +414,25 @@ namespace UnityEngine.AssetBundles
 
         private void generateCheckFile()
         {
-            //生成用于增量更新的json文件
+            //鐢熸垚鐢ㄤ簬澧為噺鏇存柊鐨刯son鏂囦欢
             var dir = new DirectoryInfo(m_OutputPath);
             var files = dir.GetFiles();
             List<Framework.AssetBundle.CheckFile> ret = new List<Framework.AssetBundle.CheckFile>();
             foreach(var v in files)
                 if(!v.Name.EndsWith("manifest"))
-                    ret.Add(new Framework.AssetBundle.CheckFile() { name = v.Name, hash = computeMD5(v.FullName) });			
-			var json = LitJson.JsonMapper.ToJson (ret);            
+                    ret.Add(new Framework.AssetBundle.CheckFile() { name = v.Name, hash = computeMD5(v.FullName) });
+            var json = LitJson.JsonMapper.ToJson(ret);
+
+            if (!string.IsNullOrEmpty(oldCheckFileStr))
+            {
+                var oldCheckFile = LitJson.JsonMapper.ToObject<List<Framework.AssetBundle.CheckFile>>(oldCheckFileStr);
+                foreach(var v in ret)
+                {
+                    if (!oldCheckFile.Exists(t => t.hash == v.hash))
+                        Debug.LogFormat("New bundle {0}", v.name);
+                }
+            }
+
             using (FileStream fs = new FileStream(Path.Combine(m_OutputPath, "CheckFile"), FileMode.Create, FileAccess.Write))
             {
                 var bytes = Encoding.UTF8.GetBytes(json);

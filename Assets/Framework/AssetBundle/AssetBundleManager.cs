@@ -26,7 +26,7 @@ namespace Framework.AssetBundle
                     }
                     else
                         instance = new AssetBundleManager();
-                    
+
                 }
                 return instance;
             }
@@ -43,7 +43,7 @@ namespace Framework.AssetBundle
             }
 #else
             {
-            if (simulationMode == null)
+                if (simulationMode == null)
                     simulationMode = UnityEditor.EditorPrefs.GetBool(SimulateModeStr, true);
                 return simulationMode.Value;
             }
@@ -62,7 +62,7 @@ namespace Framework.AssetBundle
             get
 #if !UNITY_EDITOR
             {
-                return true;
+                return false;
             }
 #else
             {
@@ -115,14 +115,14 @@ namespace Framework.AssetBundle
                 return progress * 100;
             }
         }
-        private const string remoteSrv = "http://101.201.155.94:5061/";
-        private const string version = "20170821";
+        private const string remoteSrv = "http://10.0.0.90:5061/";
+        private const string version = "20171208";
         private Dictionary<string, UnityEngine.AssetBundle> bundles = new Dictionary<string, UnityEngine.AssetBundle>();
         private List<WWW> wwws = new List<WWW>();
 
         void Awake()
         {
-            Debug.LogFormat("SimulationMode = {0}", SimulationMode);            
+            Debug.LogFormat("SimulationMode = {0}", SimulationMode);
         }
 
         public UnityEngine.AssetBundle GetLoadedBundle(string bundleName)
@@ -162,15 +162,15 @@ namespace Framework.AssetBundle
                 yield break;
 
             //移动pb文件至Persistent path
-			Debug.Log("move pb file to persistent path");
-            foreach(var v in localCheckFile)
+            Debug.Log("move pb file to persistent path");
+            foreach (var v in localCheckFile)
             {
-                if(v.name.EndsWith(".pb") && v.location == CheckFile.Location.Local)
+                if (v.name.EndsWith(".pb") && v.location == CheckFile.Location.Local)
                 {
                     var www = new WWW(PlatformPath.StreamPath2URL(v.name));
                     yield return www;
                     v.location = CheckFile.Location.Persistent;
-                    using(var fs = new FileStream(PlatformPath.PersistFileSysPath(v.name), FileMode.Create, FileAccess.Write))
+                    using (var fs = new FileStream(PlatformPath.PersistFileSysPath(v.name), FileMode.Create, FileAccess.Write))
                     {
                         fs.Write(www.bytes, 0, www.bytes.Length);
                     }
@@ -178,7 +178,7 @@ namespace Framework.AssetBundle
             }
 
             //比较check file
-			Debug.Log("Compare check file");
+            Debug.Log("Compare check file");
             List<CheckFile> finalCheckFile = new List<CheckFile>();
             if (remoteCheckFile.Count > 0)
             {
@@ -193,7 +193,7 @@ namespace Framework.AssetBundle
                         { name = remoteCheckFile[i].name, hash = remoteCheckFile[i].hash, location = CheckFile.Location.Remote });
                 }
                 //删除本地冗余的资源
-                foreach(var v in localCheckFile)
+                foreach (var v in localCheckFile)
                 {
                     if (!finalCheckFile.Contains(v) && v.location == CheckFile.Location.Persistent)
                         File.Delete(PlatformPath.PersistFileSysPath(v.name));
@@ -217,16 +217,16 @@ namespace Framework.AssetBundle
                 yield return v;
 
             //更新本地checkfile
-			Debug.Log("Update check file");
+            Debug.Log("Update check file");
             finalCheckFile.ForEach(cf => { cf.location = (cf.location == CheckFile.Location.Remote) ? CheckFile.Location.Persistent : cf.location; });
-			writeCheckFile (PlatformPath.PersistFileSysPath ("CheckFile"), finalCheckFile);
+            writeCheckFile(PlatformPath.PersistFileSysPath("CheckFile"), finalCheckFile);
 
             //TODO: 目前直接读取所有bundle, 对于大工程需要改为依赖加载
-			Debug.Log("load all bundle");
+            Debug.Log("load all bundle");
             foreach (var v in finalCheckFile)
             {
-				if (v.name.EndsWith (".pb"))
-					continue;
+                if (v.name.EndsWith(".pb"))
+                    continue;
                 switch (v.location)
                 {
                     case CheckFile.Location.Local:
@@ -241,6 +241,26 @@ namespace Framework.AssetBundle
             progress = 1.001f;
             coros.Clear();
             wwws.Clear();
+        }
+
+        public Texture LoadAssetTexture(string assetBundleName, string assetName)
+        {
+            return LoadAsset<Texture>(assetBundleName, assetName);
+        }
+
+        public GameObject LoadAssetGameObject(string assetBundleName, string assetName)
+        {
+            return LoadAsset<GameObject>(assetBundleName, assetName);
+        }
+
+        public TextAsset LoadAssetText(string assetBundleName, string assetName)
+        {
+            return LoadAsset<TextAsset>(assetBundleName, assetName);
+        }
+
+        public GameObject LoadAsset(string assetBundleName, string assetName)
+        {
+            return LoadAsset<GameObject>(assetBundleName, assetName);
         }
 
         public T LoadAsset<T>(string assetBundleName, string assetName) where T : UnityEngine.Object
@@ -258,7 +278,7 @@ namespace Framework.AssetBundle
                 return bundles[assetBundleName].LoadAsset<T>(assetName);
             else
             {
-                if(!assetBundleName.StartsWith("lua"))
+                if (!assetBundleName.StartsWith("lua"))
                     Debug.LogErrorFormat("There is no asset with name {0}/{1}", assetBundleName, assetName);
                 return null;
             }
@@ -297,7 +317,7 @@ namespace Framework.AssetBundle
                 yield break;
             }
 
-            if (www.text != version)
+            if (!www.text.StartsWith(version))
             {
                 IsError = true;
                 ErrorInfo = "需要更新版本";
@@ -319,27 +339,29 @@ namespace Framework.AssetBundle
                     Debug.LogErrorFormat("WWW error occur. Error = {0}", www.error);
                     yield break;
                 }
-				LitJson.JsonData data = LitJson.JsonMapper.ToObject(www.text);
-				for(int i = 0;i<data.Count;i++){
-					var c = new CheckFile(){
-						name = data[i]["name"].ToString(), 
-						hash = data[i]["hash"].ToString(), 
-						location = (CheckFile.Location)(int)data[i]["location"]
-					};
-					checkFile.Add(c);
-				}
+                LitJson.JsonData data = LitJson.JsonMapper.ToObject(www.text);
+                for (int i = 0; i < data.Count; i++)
+                {
+                    var c = new CheckFile()
+                    {
+                        name = data[i]["name"].ToString(),
+                        hash = data[i]["hash"].ToString(),
+                        location = (CheckFile.Location)(int)data[i]["location"]
+                    };
+                    checkFile.Add(c);
+                }
             }
         }
 
-		private void writeCheckFile(string filePath, List<CheckFile> checkFiles)
-		{
-			var json = LitJson.JsonMapper.ToJson (checkFiles);
-			using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write))
-			{
-				var bytes = Encoding.UTF8.GetBytes(json);
-				fs.Write(bytes, 0, bytes.Length);
-			}
-		}
+        private void writeCheckFile(string filePath, List<CheckFile> checkFiles)
+        {
+            var json = LitJson.JsonMapper.ToJson(checkFiles);
+            using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+            {
+                var bytes = Encoding.UTF8.GetBytes(json);
+                fs.Write(bytes, 0, bytes.Length);
+            }
+        }
 
         private IEnumerator downloadAssetBundle(string bundlePath, string bundleName)
         {

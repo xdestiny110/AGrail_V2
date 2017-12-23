@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using XLua;
+using Framework.Log;
 
 namespace Framework
 {
@@ -15,6 +16,10 @@ namespace Framework
         private List<Action> updateAction = new List<Action>();
         private List<Action> onceAction = new List<Action>();
         private List<Timer> timers = new List<Timer>();
+
+        [SerializeField]
+        private bool isUseLogHandler = true;
+        private LogHandler logHandler = null;
 
         public bool AddUpdateAction(Action ac)
         {
@@ -63,6 +68,9 @@ namespace Framework
             Instance = this;
             DontDestroyOnLoad(this);
 
+            if(isUseLogHandler)
+                logHandler = new LogHandler();
+
             luaEnv.AddBuildin("luapb", XLua.LuaDLL.Lua.LoadLuaProtobuf);
             luaEnv.AddLoader((ref string filename) => {
                 var asset = AssetBundleManager.Instance.LoadAsset<TextAsset>("lua_ui", filename);
@@ -73,20 +81,13 @@ namespace Framework
                 if (asset == null)
                     asset = AssetBundleManager.Instance.LoadAsset<TextAsset>("lua_network", filename);
                 if (asset == null)
-                    asset = AssetBundleManager.Instance.LoadAsset<TextAsset>("util", filename);
+                    asset = AssetBundleManager.Instance.LoadAsset<TextAsset>("lua_util", filename);
                 if(asset != null && !string.IsNullOrEmpty(asset.text))
                     return asset.bytes;
-                Debug.LogErrorFormat("There is no lua script {0}", filename);
+                Debug.LogErrorFormat("There is no lua script {0}. Maybe read from resources.", filename);
                 return null;
             });
         }
-
-		IEnumerator Start()
-		{
-			yield return AssetBundleManager.Instance.LoadCheckFileAsync ();
-			var luaScript = AssetBundleManager.Instance.LoadAsset<TextAsset>("util", "GameMgr");
-			luaEnv.DoString(luaScript.text);
-		}
 
         void Update()
         {
@@ -106,6 +107,12 @@ namespace Framework
                 }
                 i++;
             }
+        }
+
+        void OnDestroy()
+        {
+            if(logHandler != null)
+                logHandler.Close();
         }
     }
 }

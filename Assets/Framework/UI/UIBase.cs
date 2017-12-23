@@ -24,7 +24,7 @@ namespace Framework.UI
         private Action luaOnHide;
         private Action luaOnPause;
         private Action luaOnResume;
-        private Action<object[]> luaOnEventTriiger;
+        private Action<string, object[]> luaOnEventTriiger;
 
         private object[] parameters;
         public virtual object[] Parameters
@@ -68,7 +68,8 @@ namespace Framework.UI
             MessageSystem.Notify("OnUICreate", this);
             CanvasGroup = GetComponent<CanvasGroup>();
             Canvas = GetComponent<Canvas>();
-            Canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            Canvas.renderMode = (Canvas.renderMode != RenderMode.WorldSpace) ? 
+                RenderMode.ScreenSpaceCamera : RenderMode.WorldSpace;
             Canvas.worldCamera = Camera.main;
 
             var idx = gameObject.name.IndexOf(" ");
@@ -93,16 +94,15 @@ namespace Framework.UI
                 scriptEnv.SetMetaTable(meta);
                 meta.Dispose();
                 scriptEnv.Set("self", this);
-                MonoRoot.luaEnv.DoString(luaScript.text, "UIBase", scriptEnv);
-
-                var luaAwake = scriptEnv.Get<Action>("awake");
-                if (luaAwake != null) luaAwake();
+                MonoRoot.luaEnv.DoString(luaScript.text, luaScript.name, scriptEnv);
                 luaDestroy = scriptEnv.Get<Action>("destroy");
                 luaOnShow = scriptEnv.Get<Action>("onShow");
                 luaOnHide = scriptEnv.Get<Action>("onHide");
                 luaOnPause = scriptEnv.Get<Action>("onPause");
                 luaOnResume = scriptEnv.Get<Action>("onResume");
-                luaOnEventTriiger = scriptEnv.Get<Action<object[]>>("onEventTriiger");
+                luaOnEventTriiger = scriptEnv.Get<Action<string, object[]>>("onEventTriiger");
+                var luaAwake = scriptEnv.Get<Action>("awake");
+                if (luaAwake != null) luaAwake();
             }
             else
                 Debug.LogErrorFormat("Can not find lua script on {0}", gameObject.name);
@@ -116,7 +116,7 @@ namespace Framework.UI
 
         public virtual void OnEventTrigger(string eventType, params object[] parameters)
         {
-            if (luaOnEventTriiger != null) luaOnEventTriiger(parameters);
+            if (luaOnEventTriiger != null) luaOnEventTriiger(eventType, parameters);
         }
     }
 }

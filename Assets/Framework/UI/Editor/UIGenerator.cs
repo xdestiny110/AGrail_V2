@@ -6,10 +6,10 @@ namespace Framework.UI
 {
     public class UIGenerator : ScriptableObject
     {
-        public string UIPrefabPath = "Prefabs/";
-        public string UIScriptPath = "Scripts/";
+        public string PrefabPath = "Prefabs/";
+        public string ScriptPath = "Scripts/";
         [ReadOnly]
-        public string UIConfigPath;
+        public string ConfigPath;
 
         private static UIGenerator instance;
         public static UIGenerator Instance
@@ -27,8 +27,8 @@ namespace Framework.UI
                             new System.Diagnostics.StackTrace(1, true).GetFrame(0).GetFileName());
                         filePath = filePath.Substring(0, filePath.LastIndexOf("/"));
                         instance = CreateInstance<UIGenerator>();
-                        instance.UIConfigPath = filePath + "/UICofig.asset";
-                        AssetDatabase.CreateAsset(instance, instance.UIConfigPath);
+                        instance.ConfigPath = filePath + "/UICofig.asset";
+                        AssetDatabase.CreateAsset(instance, instance.ConfigPath);
                         AssetDatabase.Refresh();
                     }
                 }
