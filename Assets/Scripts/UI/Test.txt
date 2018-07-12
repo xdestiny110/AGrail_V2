@@ -1,4 +1,4 @@
-function awake()
+function start()
     local pb = require("luapb")
     print("load lua-protobuf")
     assert(pb.loadfile(CS.Framework.PlatformPath.PersistFileSysPath("addressbook.pb")))

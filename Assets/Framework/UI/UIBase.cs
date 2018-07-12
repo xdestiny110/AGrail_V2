@@ -101,8 +101,8 @@ namespace Framework.UI
                 luaOnPause = scriptEnv.Get<Action>("onPause");
                 luaOnResume = scriptEnv.Get<Action>("onResume");
                 luaOnEventTriiger = scriptEnv.Get<Action<string, object[]>>("onEventTriiger");
-                var luaAwake = scriptEnv.Get<Action>("awake");
-                if (luaAwake != null) luaAwake();
+                var luaStart = scriptEnv.Get<Action>("start");
+                if (luaStart != null) luaStart();
             }
             else
                 Debug.LogErrorFormat("Can not find lua script on {0}", gameObject.name);
