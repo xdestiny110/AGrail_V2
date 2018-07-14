@@ -66,7 +66,7 @@ namespace Framework.UI
         {
             using (var fw = new FileWriter(systemPath))
             {
-                fw.Append("function awake()");
+                fw.Append("function start()");
                 fw.Append("    ");
                 fw.Append("end");
                 fw.Append("");
